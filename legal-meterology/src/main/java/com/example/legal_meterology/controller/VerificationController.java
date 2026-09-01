@@ -15,11 +15,12 @@ public class VerificationController {
 
     @GetMapping("/check")
     public String checkResult(
-            @RequestParam("measuredValue") double measuredValue,
-            @RequestParam("permissibleLimit") double permissibleLimit) {
+            @RequestParam double measuredValue,
+            @RequestParam double permissibleLimit) {
 
         return verificationService.checkResult(
                 measuredValue,
-                permissibleLimit);
+                permissibleLimit
+        );
     }
 }
