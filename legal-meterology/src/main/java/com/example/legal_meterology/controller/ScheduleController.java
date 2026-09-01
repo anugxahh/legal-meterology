@@ -2,8 +2,8 @@ package com.example.legal_meterology.controller;
 
 import com.example.legal_meterology.entity.Schedule;
 import com.example.legal_meterology.repository.ScheduleRepository;
-import org.springframework.web.bind.annotation.*;
 import com.example.legal_meterology.service.VerificationService;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -12,9 +12,13 @@ import java.util.List;
 public class ScheduleController {
 
     private final ScheduleRepository repository;
+    private final VerificationService verificationService;
 
-    public ScheduleController(ScheduleRepository repository) {
+    public ScheduleController(
+            ScheduleRepository repository,
+            VerificationService verificationService) {
         this.repository = repository;
+        this.verificationService = verificationService;
     }
 
     @PostMapping
@@ -36,5 +40,15 @@ public class ScheduleController {
     public String deleteSchedule(@PathVariable Long id) {
         repository.deleteById(id);
         return "Schedule deleted successfully";
+    }
+
+    @GetMapping("/check")
+    public String checkResult(
+            @RequestParam double measuredValue,
+            @RequestParam double permissibleLimit) {
+
+        return verificationService.checkResult(
+                measuredValue,
+                permissibleLimit);
     }
 }
