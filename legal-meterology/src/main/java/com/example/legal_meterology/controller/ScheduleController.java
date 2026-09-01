@@ -17,39 +17,44 @@ public class ScheduleController {
     public ScheduleController(
             ScheduleRepository repository,
             VerificationService verificationService) {
+
         this.repository = repository;
         this.verificationService = verificationService;
     }
 
+    // CREATE
     @PostMapping
     public Schedule createSchedule(@RequestBody Schedule schedule) {
         return repository.save(schedule);
     }
 
+    // READ ALL
     @GetMapping
     public List<Schedule> getAllSchedules() {
         return repository.findAll();
     }
 
+    // READ ONE
     @GetMapping("/{id}")
     public Schedule getSchedule(@PathVariable Long id) {
         return repository.findById(id).orElse(null);
     }
 
+    // DELETE
     @DeleteMapping("/{id}")
     public String deleteSchedule(@PathVariable Long id) {
         repository.deleteById(id);
         return "Schedule deleted successfully";
     }
 
+    // PASS / FAIL CHECK
     @GetMapping("/check")
-public String checkResult(
-        @RequestParam("measuredValue") double measuredValue,
-        @RequestParam("permissibleLimit") double permissibleLimit) {
+    public String checkResult(
+            @RequestParam("measuredValue") double measuredValue,
+            @RequestParam("permissibleLimit") double permissibleLimit) {
 
-    return verificationService.checkResult(
-            measuredValue,
-            permissibleLimit);
-}
-}
+        return verificationService.checkResult(
+                measuredValue,
+                permissibleLimit);
+    }
 }
