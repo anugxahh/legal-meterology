@@ -1,4 +1,4 @@
-package com.example.legalmeterology.entity;
+package com.example.legal_meterology.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
