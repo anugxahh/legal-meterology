@@ -2,7 +2,6 @@ package com.example.legal_meterology.controller;
 
 import com.example.legal_meterology.entity.Schedule;
 import com.example.legal_meterology.repository.ScheduleRepository;
-import com.example.legal_meterology.service.VerificationService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,49 +11,33 @@ import java.util.List;
 public class ScheduleController {
 
     private final ScheduleRepository repository;
-    private final VerificationService verificationService;
 
-    public ScheduleController(
-            ScheduleRepository repository,
-            VerificationService verificationService) {
-
+    public ScheduleController(ScheduleRepository repository) {
         this.repository = repository;
-        this.verificationService = verificationService;
     }
 
-    // CREATE SCHEDULE
+    // CREATE
     @PostMapping
     public Schedule createSchedule(@RequestBody Schedule schedule) {
         return repository.save(schedule);
     }
 
-    // GET ALL SCHEDULES
+    // GET ALL
     @GetMapping
     public List<Schedule> getAllSchedules() {
         return repository.findAll();
     }
 
-    // GET SCHEDULE BY ID
-    @GetMapping("/id/{id}")
+    // GET BY ID
+    @GetMapping("/{id}")
     public Schedule getSchedule(@PathVariable Long id) {
         return repository.findById(id).orElse(null);
     }
 
-    // DELETE SCHEDULE
-    @DeleteMapping("/id/{id}")
+    // DELETE
+    @DeleteMapping("/{id}")
     public String deleteSchedule(@PathVariable Long id) {
         repository.deleteById(id);
         return "Schedule deleted successfully";
-    }
-
-    // PASS / FAIL CHECK
-    @GetMapping("/check")
-    public String checkResult(
-            @RequestParam("measuredValue") double measuredValue,
-            @RequestParam("permissibleLimit") double permissibleLimit) {
-
-        return verificationService.checkResult(
-                measuredValue,
-                permissibleLimit);
     }
 }
