@@ -1,6 +1,6 @@
 package com.example.legal_meterology.controller;
 
-import com.example.legal_meterology.service.VerificationService;
+import com.example.legal_meterology.Service.VerificationService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -13,7 +13,6 @@ public class VerificationController {
         this.verificationService = verificationService;
     }
 
-    // PASS / FAIL CHECK
     @GetMapping("/check")
     public String checkResult(
             @RequestParam("measuredValue") double measuredValue,
