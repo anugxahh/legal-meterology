@@ -43,12 +43,13 @@ public class ScheduleController {
     }
 
     @GetMapping("/check")
-    public String checkResult(
-            @RequestParam double measuredValue,
-            @RequestParam double permissibleLimit) {
+public String checkResult(
+        @RequestParam("measuredValue") double measuredValue,
+        @RequestParam("permissibleLimit") double permissibleLimit) {
 
-        return verificationService.checkResult(
-                measuredValue,
-                permissibleLimit);
-    }
+    return verificationService.checkResult(
+            measuredValue,
+            permissibleLimit);
+}
+}
 }
