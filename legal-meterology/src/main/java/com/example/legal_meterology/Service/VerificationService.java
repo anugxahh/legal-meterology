@@ -1,4 +1,4 @@
-package com.example.legal_meterology.service;
+package com.example.legal_meterology.Service;
 
 import org.springframework.stereotype.Service;
 
