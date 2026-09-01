@@ -22,26 +22,26 @@ public class ScheduleController {
         this.verificationService = verificationService;
     }
 
-    // CREATE
+    // CREATE SCHEDULE
     @PostMapping
     public Schedule createSchedule(@RequestBody Schedule schedule) {
         return repository.save(schedule);
     }
 
-    // READ ALL
+    // GET ALL SCHEDULES
     @GetMapping
     public List<Schedule> getAllSchedules() {
         return repository.findAll();
     }
 
-    // READ ONE
-    @GetMapping("/{id}")
+    // GET SCHEDULE BY ID
+    @GetMapping("/id/{id}")
     public Schedule getSchedule(@PathVariable Long id) {
         return repository.findById(id).orElse(null);
     }
 
-    // DELETE
-    @DeleteMapping("/{id}")
+    // DELETE SCHEDULE
+    @DeleteMapping("/id/{id}")
     public String deleteSchedule(@PathVariable Long id) {
         repository.deleteById(id);
         return "Schedule deleted successfully";
