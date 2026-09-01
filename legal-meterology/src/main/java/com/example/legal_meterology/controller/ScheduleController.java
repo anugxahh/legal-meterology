@@ -3,6 +3,7 @@ package com.example.legal_meterology.controller;
 import com.example.legal_meterology.entity.Schedule;
 import com.example.legal_meterology.repository.ScheduleRepository;
 import org.springframework.web.bind.annotation.*;
+import com.example.legal_meterology.service.VerificationService;
 
 import java.util.List;
 
