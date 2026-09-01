@@ -4,32 +4,52 @@ import jakarta.persistence.*;
 import java.util.UUID;
 
 @Entity
-@Table(name = "profiles")
+@Table(name = "user_profiles")
 public class UserProfile {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
-    private String fullName;
+    private String name;
 
-    @Column(nullable = false, unique = true)
-    private String contactEmail;
+    @Column(unique = true)
+    private String email;
 
-    @Column(nullable = false)
+    private String phone;
+
+    // --- NEW FIELDS TO ADD ---
+    private String password;
+    private String businessName;
+    private String address;
+    
+    // Adding role so the frontend knows if they are CUSTOMER, LMO, or ADMIN
     private String role; 
 
-    // Getters and Setters
+    // --- GETTERS AND SETTERS ---
+    
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
-    
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
-    
-    public String getContactEmail() { return contactEmail; }
-    public void setContactEmail(String contactEmail) { this.contactEmail = contactEmail; }
-    
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    // --- NEW GETTERS AND SETTERS ---
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+
+    public String getBusinessName() { return businessName; }
+    public void setBusinessName(String businessName) { this.businessName = businessName; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
 }
