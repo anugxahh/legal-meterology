@@ -1,4 +1,4 @@
-package com.example.legal_meterology.Service;
+package com.example.legal_meterology.service;
 
 import com.example.legal_meterology.entity.VerificationApplication;
 import com.example.legal_meterology.repository.VerificationApplicationRepository;

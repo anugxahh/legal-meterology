@@ -1,10 +1,9 @@
 package com.example.legal_meterology.controller;
-
-import com.example.legal_meterology.Service.VerificationService;
+import java.util.UUID;
 
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
+import com.example.legal_meterology.service.VerificationService;
 
 @RestController
 @RequestMapping("/api/verification")

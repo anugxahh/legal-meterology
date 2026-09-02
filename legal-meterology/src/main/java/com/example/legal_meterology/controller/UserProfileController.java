@@ -2,69 +2,57 @@ package com.example.legal_meterology.controller;
 
 import com.example.legal_meterology.entity.UserProfile;
 import com.example.legal_meterology.repository.UserProfileRepository;
-
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/profiles")
+@RequestMapping("/api/users")
 @CrossOrigin(origins = "*")
 public class UserProfileController {
 
-    private final UserProfileRepository repository;
+    private final UserProfileRepository userProfileRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserProfileController(UserProfileRepository repository) {
-        this.repository = repository;
+    public UserProfileController(UserProfileRepository userProfileRepository, PasswordEncoder passwordEncoder) {
+        this.userProfileRepository = userProfileRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    @PostMapping
-    public UserProfile createProfile(@RequestBody UserProfile profile) {
-        return repository.save(profile);
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@RequestBody UserProfile user) {
+        if (userProfileRepository.findByEmail(user.getEmail()).isPresent()) {
+            return ResponseEntity.badRequest().body("Error: Email is already in use!");
+        }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userProfileRepository.save(user);
+        return ResponseEntity.ok("Success: User registered successfully!");
     }
 
-    @GetMapping
-    public List<UserProfile> getAllProfiles() {
-        return repository.findAll();
-    }
-
-    @GetMapping("/{id}")
-    public UserProfile getProfile(@PathVariable UUID id) {
-        return repository.findById(id).orElse(null);
-    }
-
-    @PutMapping("/{id}")
-    public UserProfile updateProfile(
-            @PathVariable UUID id,
-            @RequestBody UserProfile profile) {
-
-        UserProfile existing = repository.findById(id).orElse(null);
-
-        if (existing == null) {
-            return null;
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@RequestBody UserProfile loginRequest) {
+        var userOptional = userProfileRepository.findByEmail(loginRequest.getEmail());
+        
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.status(401).body("Error: Invalid email or password");
         }
 
-        existing.setName(profile.getName());
-        existing.setEmail(profile.getEmail());
-        existing.setPhone(profile.getPhone());
-        existing.setPassword(profile.getPassword());
-        existing.setBusinessName(profile.getBusinessName());
-        existing.setAddress(profile.getAddress());
-        existing.setRole(profile.getRole());
+        UserProfile user = userOptional.get();
 
-        return repository.save(existing);
+        if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+            return ResponseEntity.ok("Success: Login successful! Welcome " + user.getName());
+        } else {
+            return ResponseEntity.status(401).body("Error: Invalid email or password");
+        }
     }
 
     @DeleteMapping("/{id}")
     public String deleteProfile(@PathVariable UUID id) {
-
-        if (!repository.existsById(id)) {
+        if (!userProfileRepository.existsById(id)) {
             return "Profile not found";
         }
-
-        repository.deleteById(id);
-
+        userProfileRepository.deleteById(id);
         return "Profile deleted successfully";
     }
 }
