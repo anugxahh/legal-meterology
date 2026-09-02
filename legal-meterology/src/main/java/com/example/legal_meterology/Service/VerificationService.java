@@ -2,6 +2,7 @@ package com.example.legal_meterology.Service;
 
 import com.example.legal_meterology.entity.VerificationApplication;
 import com.example.legal_meterology.repository.VerificationApplicationRepository;
+
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -13,6 +14,7 @@ public class VerificationService {
 
     public VerificationService(
             VerificationApplicationRepository applicationRepository) {
+
         this.applicationRepository = applicationRepository;
     }
 
@@ -20,7 +22,6 @@ public class VerificationService {
             UUID applicationId,
             double observedValue) {
 
-        // Find the application
         VerificationApplication application =
                 applicationRepository.findById(applicationId).orElse(null);
 
@@ -28,11 +29,9 @@ public class VerificationService {
             return "Application not found";
         }
 
-        // Get the permissible limit from the instrument
         double permissibleLimit =
                 application.getInstrument().getPermissibleLimit();
 
-        // System automatically decides PASS or FAIL
         String result;
 
         if (Math.abs(observedValue) <= permissibleLimit) {
@@ -41,7 +40,6 @@ public class VerificationService {
             result = "FAIL";
         }
 
-        // Save the verification details
         application.setObservedValue(observedValue);
         application.setResult(result);
         application.setStatus("VERIFIED");
