@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Legal Metrology | Verification & Certification Portal</title>
+<style>
+:root{--bg:#071018;--surface:#111b23;--surface2:#0c151d;--field:#0b131a;--line:#2a3944;--text:#f4f7fa;--muted:#8d9aa8;--cyan:#4fd5ff;--green:#39ef91;--red:#ff6875;--yellow:#ffca63}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}button,input,select,textarea{font:inherit}button{cursor:pointer}
+.topbar{height:78px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;border-bottom:1px solid #1c2932;background:#080f16}
+.brand{display:flex;align-items:center;gap:14px}.brand-mark{width:52px;height:52px;border:1px solid #3b6577;border-radius:14px;display:grid;place-items:center;color:var(--cyan);font-weight:900}.brand-title{font-weight:900;letter-spacing:.08em}.brand-sub{color:var(--muted);font-size:13px;margin-top:3px}
+.secure{display:flex;align-items:center;gap:9px;font-weight:800;color:#dfe8ef}.live-dot{width:11px;height:11px;border-radius:50%;background:var(--green);border:1px solid #a6ffd0;box-shadow:0 0 7px var(--green),0 0 17px var(--green);animation:pulse 1.7s infinite}@keyframes pulse{50%{opacity:.72}}
+.hero{max-width:1200px;margin:auto;padding:66px 24px}.eyebrow{font-size:11px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:var(--cyan)}.hero h1{font-size:clamp(40px,5vw,62px);line-height:1.04;max-width:900px;margin:12px 0}.hero h1 span{color:var(--cyan)}.hero p{color:var(--muted);font-size:17px;line-height:1.7;max-width:820px}
+.role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:35px}.role-card{min-height:270px;padding:25px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(#131f28,#0f171e);box-shadow:0 18px 50px #0005}.role-icon{font-size:29px;color:var(--cyan);margin-bottom:18px}.role-card h2{margin:8px 0}.role-card p{min-height:82px;font-size:14px}
+.btn{border:1px solid transparent;border-radius:9px;padding:11px 16px;font-weight:900;background:#283640;color:var(--text)}.primary{background:var(--cyan);color:#031219}.outline{background:transparent;border-color:#3c4e5b}.success{background:#39ef9112;border-color:#39ef9155;color:var(--green)}.danger{background:#ff687512;border-color:#ff687555;color:var(--red)}
+.login-wrap{min-height:calc(100vh - 78px);display:grid;place-items:center;padding:25px}.login-card{width:min(520px,100%);background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:32px;box-shadow:0 20px 60px #0007}.login-card h1{margin:8px 0}.field{display:flex;flex-direction:column;gap:7px;margin-top:16px}label{font-size:13px;font-weight:800}
+input,select,textarea{width:100%;padding:13px;border-radius:9px;border:1px solid #34444f;background:var(--field);color:var(--text);outline:0}input:focus,select:focus,textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px #4fd5ff10}.error{height:17px;color:var(--red);font-size:12px}
+.password-wrap{position:relative}.password-wrap input{padding-right:54px}.password-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;background:transparent;color:#fff;display:grid;place-items:center;padding:0;border-radius:8px}.password-eye:hover{background:#ffffff08}.eye-svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.demo{margin-top:16px;padding:12px;border:1px dashed #40525e;border-radius:9px;color:var(--muted);font-size:12px}
+.shell{display:flex;min-height:calc(100vh - 78px)}.sidebar{width:245px;padding:22px 12px;background:#091119;border-right:1px solid #1c2932}.side-title{color:#687887;text-transform:uppercase;letter-spacing:.12em;font-size:11px;font-weight:900;margin:10px}.nav{width:100%;padding:12px;border:0;background:transparent;color:#aeb9c1;text-align:left;border-radius:10px;font-weight:800;margin:2px 0}.nav:hover,.nav.active{background:#10222c;color:var(--cyan)}.nav.locked{color:#5f6b75;opacity:.58}
+.main{flex:1;padding:30px;max-width:1550px}.head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:23px}.head h1{margin:0 0 6px;font-size:30px}.muted{color:var(--muted)}
+.grid{display:grid;gap:18px}.stats{grid-template-columns:repeat(4,1fr)}.two{grid-template-columns:2fr 1fr}.three{grid-template-columns:repeat(3,1fr)}
+.card{background:linear-gradient(#121c24,#0f171e);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 16px 45px #0004}.card h2{margin:0 0 15px}.stat-label{font-size:13px;color:var(--muted)}.stat-value{font-size:31px;font-weight:900;margin-top:7px}
+.badge{display:inline-flex;padding:5px 9px;border-radius:99px;font-size:11px;font-weight:900}.pending{color:var(--yellow);background:#ffca6315}.accepted{color:var(--green);background:#39ef9115}.rejected{color:var(--red);background:#ff687515}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:700px}th,td{padding:13px 9px;border-bottom:1px solid #293741;text-align:left;font-size:13px}th{font-size:10px;color:#748493;text-transform:uppercase;letter-spacing:.06em}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:17px 25px}.full{grid-column:1/-1}.section{margin-bottom:18px}.section-head{display:flex;align-items:center;gap:12px;margin-bottom:20px}.section-no{color:var(--cyan);font-weight:900}.actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:20px}
+.status-card{position:sticky;top:95px;align-self:start}.status-box{background:var(--surface2);border:1px solid #354550;border-radius:11px;padding:16px}.status-big{font-size:23px;font-weight:900;margin:7px 0}
+.steps{display:flex;align-items:center;margin:22px 0}.step{text-align:center;flex:1;font-size:10px;color:#687887}.dot{width:27px;height:27px;border-radius:50%;border:1px solid #394a55;display:grid;place-items:center;margin:0 auto 6px;font-weight:900}.step.done .dot{color:var(--green);border-color:var(--green);background:#39ef9112}.bar{height:2px;background:#2b3943;flex:1}.bar.done{background:var(--green)}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px}.kv>div{border:1px solid #293943;border-radius:9px;padding:11px}.kv span{display:block;font-size:11px;color:var(--muted)}.kv strong{display:block;margin-top:4px}
+.check{display:flex;align-items:flex-start;gap:11px;padding:11px;border:1px solid #2a3944;background:#0b1319;border-radius:9px;margin:8px 0}.check input{width:18px;height:18px;accent-color:var(--cyan)}
+.notice{border-left:3px solid var(--cyan);background:#0d1820;padding:12px 14px;border-radius:5px;color:var(--muted);line-height:1.6}.empty{padding:38px;text-align:center;color:var(--muted)}.hr{height:1px;background:#293741;margin:22px 0}
+.toast{position:fixed;right:20px;bottom:20px;background:#effcff;color:#06131a;padding:12px 16px;border-radius:9px;font-weight:900;z-index:200;box-shadow:0 12px 35px #0006}
+.modal{position:fixed;inset:0;background:#000000bd;display:grid;place-items:center;padding:20px;z-index:100}.wizard{width:min(760px,96vw);max-height:90vh;overflow:auto;background:var(--surface);border:1px solid #344650;border-radius:18px;padding:26px;box-shadow:0 30px 90px #0009}.wizard-head{display:flex;justify-content:space-between;gap:18px}.wizard-head h2{font-size:28px;margin:7px 0}.close{width:38px;height:38px;border:1px solid #394b57;background:#0b141b;color:#fff;border-radius:9px;font-size:24px}
+.wizard-task{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:20px}.wizard-task>div{padding:12px;border:1px solid #2a3a45;background:#0b141b;border-radius:9px}.wizard-task span{display:block;font-size:11px;color:var(--muted)}.wizard-task strong{display:block;margin-top:5px}
+.locbox{margin-top:18px;padding:17px;border-radius:11px;border:1px solid #354650;background:#0b141b;line-height:1.6}.locbox.ok{border-color:#39ef9166;background:#39ef9108}.locbox.bad{border-color:#ff687566;background:#ff687508}.wizard-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:24px}.wizard-help{margin-top:13px;color:#748492;font-size:11px;line-height:1.6}.wizard-progress{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:22px 0}.wizard-step{text-align:center;color:#677684;font-size:10px}.wizard-step>div{width:28px;height:28px;border-radius:50%;border:1px solid #3a4b56;display:grid;place-items:center;margin:0 auto 6px;font-weight:900}.wizard-step.done>div{color:var(--green);border-color:var(--green);background:#39ef9112}
+@media(max-width:1000px){.role-grid,.stats,.two,.three{grid-template-columns:1fr 1fr}.status-card{position:static}}@media(max-width:700px){.sidebar{width:68px}.sidebar .side-title,.sidebar .nav span{display:none}.nav{text-align:center}.main{padding:18px 12px}.role-grid,.stats,.two,.three,.form-grid,.kv{grid-template-columns:1fr}.full{grid-column:auto}.head{flex-direction:column}.hero h1{font-size:40px}.wizard-task{grid-template-columns:1fr}}@media(max-width:450px){.sidebar{display:none}.secure{display:none}.topbar{padding:0 14px}}
+.role-label{
+font-size:16px;font-weight:900;letter-spacing:.12em;
+border:1px solid #2e4b59;border-radius:10px;display:inline-flex;
+align-items:center;justify-content:center;padding:8px 12px;width:max-content;
+margin-bottom:18px;color:var(--cyan);
+}
+.gmail-note{font-size:11px;color:var(--muted);margin-top:6px}</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function(){
+"use strict";
+
+/* ======================= BACKEND MODE =======================
+   Keep DEMO_MODE=true while the backend contract is being wired.
+   In DEMO_MODE=false, dashboard/application/task values are read
+   from Spring Boot -> SQL and the UI falls back to zeros/empty
+   records when data is unavailable.
+=============================================================== */
+const API={
+  DEMO_MODE:true,
+  BASE_URL:"http://localhost:8080",
+  endpoints:{
+    login:"/api/auth/login",
+    customerDashboard:"/api/customer/dashboard",
+    customerApplications:"/api/customer/applications",
+    customerApplication:"/api/customer/applications",
+    customerCertificate:"/api/customer/certificates",
+    customerQR:"/api/customer/certificates/qr",
+    lmoDashboard:"/api/lmo/dashboard",
+    lmoTasks:"/api/lmo/tasks",
+    lmoVerification:"/api/lmo/verifications",
+    lmoHistory:"/api/lmo/history",
+    lmoNotifications:"/api/lmo/notifications",
+    adminDashboard:"/api/admin/dashboard",
+    adminApplications:"/api/admin/applications",
+    adminAssign:"/api/admin/assign",
+    adminOfficers:"/api/admin/officers",
+    adminReports:"/api/admin/reports"
+  },
+  token:""
+};
+
+async function apiRequest(path,options={}){
+  const headers={"Content-Type":"application/json",...(options.headers||{})};
+  if(API.token) headers.Authorization="Bearer "+API.token;
+  const r=await fetch(API.BASE_URL+path,{...options,headers});
+  if(!r.ok) throw new Error("HTTP "+r.status);
+  const type=r.headers.get("content-type")||"";
+  return type.includes("application/json")?await r.json():await r.blob();
+}
+
+const DB={customer:{counts:{applications:0,pending:0,accepted:0,rejected:0},applications:[],current:null,user:{id:0,username:"",gmail:"",name:"",email:"",phone:"",password:"",businessName:"",address:""},profile:{id:0,username:"",gmail:"",name:"",email:"",phone:"",businessName:"",address:""}},
+  lmo:{counts:{assigned:0,pending:0,submitted:0,notifications:0},tasks:[],history:[],notifications:[],profile:{id:0,username:"",gmail:"",name:"",email:"",phone:"",designation:0,department:0,district:0,officeLocation:0,status:0}},
+  admin:{counts:{total:0,pending:0,accepted:0,rejected:0},applications:[],officers:[],reports:{}}};
+
+function dataSource(list,demoList){return API.DEMO_MODE?demoList:list}
+async function loadBackendForRole(){
+  if(API.DEMO_MODE)return;
+  try{
+    if(S.role==="customer"){
+      const d=await apiRequest(API.endpoints.customerDashboard);
+      DB.customer.counts={applications:Number(d.applications??d.totalApplications??0),pending:Number(d.pending??0),accepted:Number(d.accepted??0),rejected:Number(d.rejected??0)};
+      const a=await apiRequest(API.endpoints.customerApplications);
+      DB.customer.applications=Array.isArray(a)?a:(a.applications||a.content||[]);
+    }
+    if(S.role==="lmo"){
+      const d=await apiRequest(API.endpoints.lmoDashboard);
+      DB.lmo.counts={assigned:Number(d.assigned??d.assignedToday??0),pending:Number(d.pending??0),submitted:Number(d.submitted??0),notifications:Number(d.notifications??0)};
+      const a=await apiRequest(API.endpoints.lmoTasks);
+      DB.lmo.tasks=Array.isArray(a)?a:(a.tasks||a.content||[]);
+    }
+    if(S.role==="admin"){
+      const d=await apiRequest(API.endpoints.adminDashboard);
+      DB.admin.counts={total:Number(d.totalApplications??0),pending:Number(d.pending??0),accepted:Number(d.accepted??0),rejected:Number(d.rejected??0)};
+      const a=await apiRequest(API.endpoints.adminApplications);
+      DB.admin.applications=Array.isArray(a)?a:(a.applications||a.content||[]);
+      const o=await apiRequest(API.endpoints.adminOfficers);
+      DB.admin.officers=Array.isArray(o)?o:(o.officers||o.content||[]);
+    }
+  }catch(err){
+    console.warn("Backend data unavailable:",err);
+    toast("Backend unavailable — connected data stays 0/empty.");
+  }
+}
+
+const app=document.getElementById("app");
+const S={screen:"roles",role:null,page:"dashboard",status:"Pending",task:null,wizard:null,distance:null,coords:null,locationVerified:false};
+const TASKS=[
+{id:"APP-10021",business:"Arjun Traders",instrument:"Electronic Weighing Scale",priority:"Normal",address:"Thrissur, Kerala",latitude:10.5276,longitude:76.2144},
+{id:"APP-10018",business:"Fresh Market",instrument:"Platform Scale",priority:"High",address:"Kochi, Kerala",latitude:9.9312,longitude:76.2673},
+{id:"APP-10017",business:"City Stores",instrument:"Retail Scale",priority:"Normal",address:"Kollam, Kerala",latitude:8.8932,longitude:76.6141}
+];
+const RADIUS=150;
+if(API.DEMO_MODE){DB.lmo.tasks=TASKS.slice();DB.lmo.counts={assigned:TASKS.length,pending:TASKS.length,submitted:0,notifications:2};}
+
+function header(showBack){
+  return '<header class="topbar"><div class="brand"><div class="brand-mark">LM</div><div><div class="brand-title">LEGAL METROLOGY</div><div class="brand-sub">Verification & Certification Portal</div></div></div><div class="secure"><span class="live-dot"></span><span>Secure Application Portal</span>'+(showBack?'':'<button class="btn danger" type="button" data-action="logout">Logout</button>')+'</div></header>';
+}
+function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
+function stat(a,b,c){return '<div class="card"><div class="stat-label">'+a+'</div><div class="stat-value">'+b+'</div><div class="muted">'+c+'</div></div>'}
+function head(a,b,c){return '<div class="head"><div><h1>'+a+'</h1><p class="muted">'+b+'</p></div>'+(c||'')+'</div>'}
+function toast(m){const old=document.querySelector(".toast");if(old)old.remove();const x=document.createElement("div");x.className="toast";x.textContent=m;document.body.appendChild(x);setTimeout(()=>x.remove(),2300)}
+
+function render(){
+if(S.screen==="roles"){app.innerHTML=roles();return}
+if(S.screen==="login"){app.innerHTML=login();return}
+app.innerHTML=header(false)+'<div class="shell"><aside class="sidebar">'+sidebar()+'</aside><main class="main">'+content()+'</main></div>'+(S.role==="lmo"&&S.wizard?wizard():"");
+}
+function roles(){
+return header(false)+'<main class="hero"><div class="eyebrow">Online Verification System</div><h1>Verification, tracking and <span>certification</span> in one portal.</h1><p>Select a role to continue. You can switch roles without leaving the website.</p><div class="role-grid">'+
+roleCard("customer","▣","Customer","Business / Applicant","Submit applications, track status and access certificates.")+
+roleCard("lmo","✓","LMO Officer","Legal Metrology Officer","View assigned tasks, confirm location and submit verification data.")+
+roleCard("admin","◆","Admin","System Administrator","Monitor applications, assign LMOs and view system activity.")+
+'</div></main>';
+}
+function roleCard(k,icon,title,subtitle,description){return '<article class="role-card"><div class="role-icon role-label">'+(k==="customer"?"CUSTOMER":k==="lmo"?"LMO":"ADMIN")+'</div><div class="eyebrow">'+subtitle+'</div><h2>'+title+'</h2><p class="muted">'+description+'</p><button class="btn primary" type="button" onclick="selectRole(\''+k+'\')">Continue as '+title+'</button></article>'}
+function selectRole(role){S.role=role;S.screen="login";S.page="dashboard";S.wizard=null;render();window.scrollTo(0,0)}
+window.selectRole=selectRole;
+function login(){
+  const roleName=S.role==="customer"?"Customer":S.role==="lmo"?"LMO Officer":"Admin";
+  const gmailField=(S.role==="customer"||S.role==="lmo")
+    ?'<div class="field"><label>Gmail Address</label><input id="gmail" type="email" autocomplete="email" required placeholder="example@gmail.com"><div id="ge" class="error"></div><div class="gmail-note">Use the Gmail address linked to your portal account.</div></div>'
+    :"";
+  return header(true)+'<main class="auth"><div class="auth-card"><div class="eyebrow">SECURE SIGN IN</div><h1>Sign in as '+roleName+'</h1><p class="muted">Enter your credentials to continue to the portal.</p><form id="loginForm"><div class="field"><label>Username</label><input id="user" autocomplete="username" minlength="4" required placeholder="Enter username"><div id="ue" class="error"></div></div>'+gmailField+'<div class="field"><label>Password</label><div class="password-wrap"><input id="pass" type="password" autocomplete="current-password" minlength="8" required placeholder="Minimum 8 characters"><button class="eye" type="button" data-action="eye" aria-label="Show password"><svg class="eye-svg" viewBox="0 0 24 24"><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-9.5-9.5-5-9.5-5Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><div id="pe" class="error"></div></div><div class="actions"><button class="btn outline" type="button" data-action="roles">← Back</button><button class="btn primary" type="submit">Sign in</button></div></form><div class="notice">Demo login: any username with 4+ characters, a valid Gmail address for Customer/LMO, and any password with 8+ characters.</div></div></main>';
+}
+
+function content(){return S.role==="customer"?customer():S.role==="lmo"?lmo():admin()}
+function navItem(page,label){return '<button class="nav'+(S.page===page?" active":"")+'" type="button" data-nav="'+page+'"><span>'+label+'</span></button>'}
+function sidebar(){
+if(S.role==="customer"){
+return '<div class="side-title">Customer</div>'+
+navItem("dashboard","Dashboard")+
+navItem("application","New Application")+
+navItem("applications","My Applications")+
+navItem("certificate","Certification")+
+navItem("profile","Profile");
+}
+if(S.role==="lmo"){
+return '<div class="side-title">LMO Officer</div>'+
+navItem("dashboard","Dashboard")+
+navItem("tasks","Assigned Tasks")+
+navItem("history","History")+
+navItem("notifications","Notifications")+
+navItem("profile","Profile");
+}
+return '<div class="side-title">Admin</div>'+
+navItem("dashboard","Dashboard")+
+navItem("applications","Applications")+
+navItem("assign","Assign LMO")+
+navItem("officers","LMO Officers")+
+navItem("reports","Reports")+
+navItem("profile","Profile");
+}
+
+function customer(){
+if(S.page==="application")return application();
+if(S.page==="applications")return customerApps();
+if(S.page==="certificate")return certificate();
+if(S.page==="profile")return profile("Customer");
+const c=DB.customer.counts;
+const current=DB.customer.current||{id:0,type:0,business:0,instrument:0,applicant:0,priority:0};
+return head("Customer Dashboard","Submit and track weighing & measuring instrument applications.",'<button class="btn primary" data-nav="application">+ New Application</button>')+
+'<div class="grid stats">'+stat("My Applications",String(c.applications||0),"From database")+stat("Pending",String(c.pending||0),"From database")+stat("Accepted",String(c.accepted||0),"From database")+stat("Rejected",String(c.rejected||0),"From database")+
+'</div><div class="grid two" style="margin-top:18px"><div class="card"><h2>Current Submission</h2><div class="kv">'+
+'<div><span>Application ID</span><strong>'+esc(current.id??0)+'</strong></div>'+
+'<div><span>Application Type</span><strong>'+esc(current.type??0)+'</strong></div>'+
+'<div><span>Business</span><strong>'+esc(current.business??0)+'</strong></div>'+
+'<div><span>Instrument</span><strong>'+esc(current.instrument??0)+'</strong></div>'+
+'<div><span>Applicant</span><strong>'+esc(current.applicant??0)+'</strong></div>'+
+'<div><span>Priority</span><strong>'+esc(current.priority??0)+'</strong></div>'+
+'</div></div>'+statusCard()+'</div>';
+}
+function statusCard(){
+const s=S.status;
+return '<div class="card status-card"><h2>Submission Status</h2><div class="status-box"><span class="badge '+(s==="Accepted"?"accepted":s==="Rejected"?"rejected":"pending")+'">'+s+'</span><div class="status-big">'+(s==="Accepted"?"Application accepted":s==="Rejected"?"Action required":"Under review")+'</div><div class="muted">'+(s==="Accepted"?"Application can move to certification.":s==="Rejected"?"Correction required before resubmission.":"Application received and waiting for verification.")+'</div></div>'+progress(s)+(s==="Accepted"?'<button class="btn success" style="width:100%" data-nav="certificate">Move to Certification →</button>':"")+'</div>';
+}
+function progress(s){const n=s==="Accepted"?3:s==="Rejected"?2:1;return '<div class="steps"><div class="step done"><div class="dot">✓</div>Submitted</div><div class="bar done"></div><div class="step '+(n>=2?"done":"")+'"><div class="dot">'+(n>=2?"✓":"2")+'</div>Verification</div><div class="bar '+(n>=3?"done":"")+'"></div><div class="step '+(n>=3?"done":"")+'"><div class="dot">'+(n>=3?"✓":"3")+'</div>Certification</div></div>'}
+function application(){
+return head("New Verification Application","Application details.",'<button class="btn outline" data-nav="dashboard">← Dashboard</button>')+
+'<form id="customerApplicationForm"><div class="grid two"><div>'+
+section("01","Application Details",'<div class="form-grid"><div class="field"><label>Application Type *</label><select name="applicationType" required><option value="Verification">Verification</option><option value="Re-verification">Re-verification</option></select></div><div class="field"><label>Priority</label><select name="priority"><option value="Normal">Normal</option><option value="High">High</option><option value="Urgent">Urgent</option></select></div></div>')+
+section("02","User / Applicant Details",'<div class="form-grid">'+
+'<div class="field"><label>User ID *</label><input name="userId" placeholder="Enter user ID" required></div>'+
+'<div class="field"><label>Name *</label><input name="name" placeholder="Full name" required></div>'+
+'<div class="field"><label>Email Address *</label><input name="email" type="email" placeholder="name@example.com" required></div>'+
+'<div class="field"><label>Phone Number *</label><input name="phone" type="tel" placeholder="10-digit phone number" required></div>'+
+'<div class="field"><label>Password *</label><input name="userPassword" type="password" minlength="8" placeholder="Minimum 8 characters" required></div>'+
+'<div class="field full"><label>Business / Establishment Name *</label><input name="businessName" placeholder="Enter business or establishment name" required></div>'+
+'<div class="field full"><label>Address *</label><textarea name="userAddress" placeholder="Full business / establishment address" required></textarea></div>'+
+'</div>')+
+section("03","Business Address",'<div class="form-grid"><div class="field full"><label>Address Line 1 *</label><input name="address1" placeholder="House / building / street"></div><div class="field"><label>Address Line 2</label><input name="address2" placeholder="Landmark / area (optional)"></div><div class="field"><label>PIN Code *</label><input name="pin" placeholder="6-digit PIN"></div><div class="field"><label>State / UT *</label><select name="state"><option value="">Select</option><option>Kerala</option><option>Tamil Nadu</option><option>Karnataka</option></select></div><div class="field"><label>District *</label><input name="district" placeholder="District"></div></div>')+
+section("04","Instrument Details",'<div class="form-grid"><div class="field"><label>Instrument Category *</label><select name="category"><option value="">Select</option><option>Load cells</option><option>Weighing instruments</option><option>Measuring instruments</option></select></div><div class="field"><label>Instrument Type *</label><select name="instrumentType"><option value="">Select</option><option>Weighing instrument</option><option>Measuring instrument</option></select></div><div class="field"><label>Manufacturer *</label><input name="manufacturer"></div><div class="field"><label>Model *</label><input name="model"></div><div class="field"><label>Serial Number *</label><input name="serial"></div><div class="field"><label>Capacity / Range *</label><input name="capacity"></div><div class="field"><label>Accuracy Class</label><select name="accuracyClass"><option value="">Select</option><option>Class I</option><option>Class II</option></select></div><div class="field"><label>Previous Certificate No.</label><input name="previousCertificate" placeholder="For re-verification, if available"></div></div>')+
+'<div class="actions"><button class="btn outline" type="button" data-action="draft">Save Draft</button><button class="btn primary" type="submit">Submit Application</button></div><div class="notice" style="margin-top:14px">The User fields map to <b>id, name, email, phone, password, businessName, address</b>. Password is stored/sent to the backend for authentication and is not shown on Profile.</div></div>'+statusCard()+'</div></form>';
+}
+
+function section(n,t,b){return '<section class="card section"><div class="section-head"><span class="section-no">'+n+'</span><h2>'+t+'</h2></div>'+b+'</section>'}
+function customerApps(){
+const rows=API.DEMO_MODE?[
+["APP-10021","Arjun Traders","Electronic Weighing Scale","Pending"],
+["APP-10020","Fresh Market","Platform Scale","Accepted"],
+["APP-10019","XYZ Fuels","Fuel Dispenser","Rejected"]
+]:DB.customer.applications.map(a=>[a.id,a.business,a.instrument,a.status||""]);
+return head("My Applications","Track your submitted applications.")+
+`<div class="card table-wrap">${rows.length?`<table><thead><tr><th>ID</th><th>Business</th><th>Instrument</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="badge ${r[3]==="Accepted"?"accepted":r[3]==="Rejected"?"rejected":"pending"}">${r[3]}</span></td></tr>`).join("")}</tbody></table>`:`<div class="empty">No application records loaded from the database.</div>`}</div>`;
+}
+function certificate(){if(S.status!=="Accepted")return head("Certification","Certificate becomes available after backend acceptance.")+'<div class="card empty">Current status: <strong>'+S.status+'</strong></div>';return head("Certification","Accepted application is ready for certification.")+'<div class="card"><div class="eyebrow">CERTIFICATE READY</div><h2 style="font-size:28px">Verification Certificate — APP-10021</h2><div class="kv"><div><span>Business</span><strong>Arjun Traders</strong></div><div><span>Instrument</span><strong>Electronic Weighing Scale</strong></div><div><span>Model</span><strong>640AB</strong></div><div><span>Status</span><strong style="color:var(--green)">Accepted</strong></div></div><div class="hr"></div><div class="notice">Certificate and QR generation are backend placeholders.</div><div class="actions"><button class="btn success" data-action="certificate">Download Certificate</button><button class="btn outline" data-action="qr">Generate QR</button></div><div id="backendArea"></div></div>'}
+function profile(role){
+if(role==="Customer"){
+const d=DB.customer.profile||DB.customer.user||{id:0,username:"",gmail:"",name:"",email:"",phone:"",businessName:"",address:""};
+return head("Customer Profile","Personal and business information.")+
+'<div class="grid two"><div class="card"><h2>Personal Information</h2><div class="form-grid">'+
+profileField("User ID",d.id??0)+profileField("Username",d.username??"")+profileField("Gmail",d.gmail??d.email??"")+profileField("Name",d.name??0)+profileField("Phone",d.phone??0)+
+'</div></div><div class="card"><h2>Business Information</h2><div class="form-grid">'+
+profileField("Business / Establishment Name",d.businessName??0)+profileField("Address",d.address??0,true)+
+'</div></div></div>';
+}
+if(role==="LMO Officer"){
+const d=DB.lmo.profile||{id:0,name:0,email:0,phone:0,designation:0,department:0,district:0,officeLocation:0,status:0};
+return head("LMO Officer Profile","Officer and jurisdiction information.")+
+'<div class="grid two"><div class="card"><h2>Officer Information</h2><div class="form-grid">'+
+profileField("Officer ID",d.id??0)+profileField("Username",d.username??"")+profileField("Gmail",d.gmail??d.email??"")+profileField("Name",d.name??0)+profileField("Phone",d.phone??0)+
+'</div></div><div class="card"><h2>Official Details</h2><div class="form-grid">'+
+profileField("Designation",d.designation??0)+profileField("Department",d.department??0)+profileField("District / Jurisdiction",d.district??0)+profileField("Office Location",d.officeLocation??0)+
+'</div></div></div>';
+}
+const d=DB.admin.profile||{id:0,name:0,email:0,phone:0,role:0,accessLevel:0,department:0,status:0};
+return head("Administrator Profile","Administrator and system access information.")+
+'<div class="grid two"><div class="card"><h2>Administrator Information</h2><div class="form-grid">'+
+profileField("Admin ID",d.id??0)+profileField("Name",d.name??0)+profileField("Email",d.email??0)+profileField("Phone",d.phone??0)+
+'</div></div><div class="card"><h2>System Access</h2><div class="form-grid">'+
+profileField("Role",d.role??0)+profileField("Access Level",d.accessLevel??0)+profileField("Department",d.department??0)+profileField("Account Status",d.status??0)+
+'</div></div></div>';
+}
+function profileField(label,value,full=false){
+return '<div class="field '+(full?"full":"")+'"><label>'+label+'</label><input value="'+esc(value)+'" disabled></div>';
+}
+
+/* LMO */
+function lmo(){
+if(S.page==="tasks")return lmoTasksPage();
+if(S.page==="verification"&&!S.locationVerified){S.page="tasks";return lmoTasksPage();}
+if(S.page==="verification")return verification();
+if(S.page==="history")return head("Verification History","Previously submitted records.")+'<div class="card table-wrap"><table><thead><tr><th>ID</th><th>Instrument</th><th>Status</th></tr></thead><tbody><tr><td>APP-10020</td><td>Platform Scale</td><td><span class="badge accepted">Processed</span></td></tr><tr><td>APP-10016</td><td>Retail Scale</td><td><span class="badge pending">Processed</span></td></tr></tbody></table></div>';
+if(S.page==="notifications")return head("Notifications","Assignments and system updates.")+'<div class="card"><p><b>New verification assigned</b><br><span class="muted">APP-10021 — Arjun Traders</span></p><div class="hr"></div><p><b>Deadline reminder</b><br><span class="muted">APP-10018 requires attention.</span></p></div>';
+if(S.page==="profile")return profile("LMO Officer");
+return head("LMO Officer Dashboard","Review assigned applications and begin a field verification.")+'<div class="grid stats">'+stat("Assigned Today",String(DB.lmo.counts.assigned||0),"From database")+stat("Pending",String(DB.lmo.counts.pending||0),"From database")+stat("Submitted",String(DB.lmo.counts.submitted||0),"From database")+stat("Notifications",String(DB.lmo.counts.notifications||0),"From database")+'</div><div class="grid two" style="margin-top:18px"><div class="card"><h2>Assigned Verifications</h2><div class="table-wrap"><table><thead><tr><th>ID</th><th>Business</th><th>Instrument</th><th>Location</th><th></th></tr></thead><tbody>'+(DB.lmo.tasks||[]).map(t=>'<tr><td>'+t.id+'</td><td>'+t.business+'</td><td>'+t.instrument+'</td><td>'+t.address+'</td><td><button class="btn primary" data-open-task="'+t.id+'">Open Verification</button></td></tr>').join("")+'</tbody></table></div></div><div class="card"><h2>Before verification</h2><div class="notice">Open Verification first confirms the LMO officer is physically at the task location. The remaining windows appear only after the location matches.</div></div></div>';
+}
+function lmoTasksPage(){return head("Assigned Verifications","Applications assigned to your LMO account.")+'<div class="card table-wrap"><table><thead><tr><th>ID</th><th>Business</th><th>Instrument</th><th>Location</th><th>Action</th></tr></thead><tbody>'+(DB.lmo.tasks||[]).map(t=>'<tr><td>'+t.id+'</td><td>'+t.business+'</td><td>'+t.instrument+'</td><td>'+t.address+'</td><td><button class="btn primary" data-open-task="'+t.id+'">Open Verification</button></td></tr>').join("")+'</tbody></table></div>'}
+function verification(){const t=S.task||(DB.lmo.tasks||[])[0];return head("Instrument Verification",t.id+" • "+t.business+" • "+t.instrument,'<button class="btn outline" data-nav="tasks">← Assigned Tasks</button>')+'<div class="grid two"><div class="card"><h2>Verification Parameters</h2>'+["Capacity / range adhered to","Accuracy class requirement satisfied","Zero error within permitted limit","Display and identification details correct","Physical condition / seal acceptable"].map(x=>'<label class="check"><input type="checkbox"><span><b>'+x+'</b><br><small class="muted">Officer confirms the field condition.</small></span></label>').join("")+'<div class="field"><label>Officer Remarks</label><textarea placeholder="Measured readings / observations..."></textarea></div><div class="field"><label>Evidence Photo / Document</label><input type="file" accept="image/*,.pdf"></div></div><div class="card"><h2>Submit Verification</h2><div class="notice">The frontend does not decide PASS/FAIL. Submit the completed data to Spring Boot.</div><button class="btn primary" style="width:100%;margin-top:22px;padding:14px" data-action="lmoSubmit">Submit Verification</button></div></div>'}
+function openTask(id){
+const list=(DB.lmo.tasks||[]);
+const task=list.find(x=>String(x.id)===String(id));
+if(!task){toast("Selected task data is unavailable.");return;}
+S.task=task;S.wizard="location";S.distance=null;S.coords=null;S.locationVerified=false;render();
+}
+function formatDistance(meters){
+  return `${(meters/1000).toFixed(2)} km`;
+}
+function distance(a,b,c,d){const R=6371000,r=x=>x*Math.PI/180,dl=r(c-a),dn=r(d-b),x=Math.sin(dl/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dn/2)**2;return 2*R*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
+function requestLocation(){if(!navigator.geolocation){toast("Geolocation is not supported.");return}toast("Requesting location…");navigator.geolocation.getCurrentPosition(p=>{S.coords=p.coords;const t=S.task;if(!t||typeof t.latitude!=="number"||typeof t.longitude!=="number"){toast("Task location coordinates were not supplied by the backend.");return;}S.distance=distance(p.coords.latitude,p.coords.longitude,t.latitude,t.longitude);S.locationVerified=S.distance<=RADIUS;render()},e=>{toast(e.code===1?"Location permission denied.":e.code===2?"Location unavailable.":"Location request failed. Try again.")},{enableHighAccuracy:true,timeout:15000,maximumAge:0})}
+function wizardProgress(n){const names=["Location","Task","Parameters","Evidence","Review"];return '<div class="wizard-progress">'+names.map((x,i)=>'<div class="wizard-step '+(i<n?"done":"")+'"><div>'+(i<n?"✓":i+1)+'</div><span>'+x+'</span></div>').join("")+'</div>'}
+function wizard(){const t=S.task||TASKS[0];if(S.wizard==="location"){let box,act;if(S.distance===null){box='<div class="locbox"><b>Current location required</b><br><span class="muted">Click Enable Location and allow the browser permission.</span></div>';act='<button class="btn outline" data-action="closeWizard">Cancel</button><button class="btn primary" data-action="locate">Enable Location</button>'}else if(S.distance<=RADIUS){box='<div class="locbox ok"><b>✓ Location confirmed</b><br><span>You are approximately '+formatDistance(S.distance)+' from '+t.address+'.</span></div>';act='<button class="btn outline" data-action="closeWizard">Cancel</button><button class="btn primary" data-action="wizardNext" data-step="task">Continue</button>'}else{box='<div class="locbox bad"><b>✕ Location mismatch</b><br><span>You are approximately '+formatDistance(S.distance)+' from '+t.address+'.</span></div>';act='<button class="btn outline" data-action="closeWizard">Cancel</button><button class="btn primary" data-action="locate">Refresh Location</button>'}return '<div class="modal"><div class="wizard"><div class="wizard-head"><div><div class="eyebrow">STEP 1 OF 5</div><h2>Confirm Officer Location</h2><p class="muted">You must confirm your current location before this task can be opened.</p></div><button class="close" data-action="closeWizard">×</button></div>'+wizardProgress(1)+'<div class="wizard-task"><div><span>Selected Application</span><strong>'+t.id+'</strong></div><div><span>Business</span><strong>'+t.business+'</strong></div><div><span>Task Location</span><strong>'+t.address+'</strong></div><div><span>Instrument</span><strong>'+t.instrument+'</strong></div></div>'+box+'<div class="wizard-actions">'+act+'</div><div class="wizard-help">Run this project with VS Code Live Server / localhost or HTTPS for browser location access.</div></div></div>'}
+if(S.wizard==="task")return wizardFrame(2,"Confirm Task Details",'<div class="wizard-task"><div><span>Application</span><strong>'+t.id+'</strong></div><div><span>Business</span><strong>'+t.business+'</strong></div><div><span>Instrument</span><strong>'+t.instrument+'</strong></div><div><span>Location</span><strong>'+t.address+'</strong></div></div><div class="notice" style="margin-top:16px">Location matched. Confirm the task details before continuing.</div>','<button class="btn outline" data-action="wizardNext" data-step="location">Back</button><button class="btn primary" data-action="wizardNext" data-step="parameters">Continue</button>');
+if(S.wizard==="parameters")return wizardFrame(3,"Verification Parameters",["Capacity / range adhered to","Accuracy class requirement satisfied","Zero error within permitted limit","Display and identification details correct","Physical condition / seal acceptable"].map(x=>'<label class="check"><input type="checkbox"><span><b>'+x+'</b><br><small class="muted">Confirm the field condition.</small></span></label>').join(""),'<button class="btn outline" data-action="wizardNext" data-step="task">Back</button><button class="btn primary" data-action="wizardNext" data-step="evidence">Continue</button>');
+if(S.wizard==="evidence")return wizardFrame(4,"Evidence & Remarks",'<div class="field"><label>Officer Remarks</label><textarea placeholder="Measured readings / observations..."></textarea></div><div class="field"><label>Evidence Photo / Document</label><input type="file" accept="image/*,.pdf"></div><div class="notice" style="margin-top:16px">Evidence will be sent to the backend when the real API is connected.</div>','<button class="btn outline" data-action="wizardNext" data-step="parameters">Back</button><button class="btn primary" data-action="wizardNext" data-step="review">Review Submission</button>');
+return wizardFrame(5,"Review & Submit",'<div class="wizard-task"><div><span>Application</span><strong>'+t.id+'</strong></div><div><span>Location</span><strong>Confirmed</strong></div><div><span>Verification Data</span><strong>Ready</strong></div></div><div class="notice" style="margin-top:16px"><b>Backend processing:</b> the frontend does not decide PASS/FAIL.</div>','<button class="btn outline" data-action="wizardNext" data-step="evidence">Back</button><button class="btn primary" data-action="finishWizard">Submit Verification</button>')}
+function wizardFrame(n,title,body,actions){return '<div class="modal"><div class="wizard"><div class="wizard-head"><div><div class="eyebrow">STEP '+n+' OF 5</div><h2>'+title+'</h2></div><button class="close" data-action="closeWizard">×</button></div>'+wizardProgress(n)+'<div>'+body+'</div><div class="wizard-actions">'+actions+'</div></div></div>'}
+
+/* Admin */
+function admin(){
+if(S.page==="applications")return adminApplications();
+if(S.page==="assign")return adminAssign();
+if(S.page==="officers")return adminOfficers();
+if(S.page==="reports")return adminReports();
+if(S.page==="profile")return profile("Administrator");
+
+const c=API.DEMO_MODE
+?{total:128,pending:26,accepted:84,rejected:18}
+:DB.admin.counts;
+
+const rows=API.DEMO_MODE
+?[["APP-10021","Arjun Traders","Electronic Weighing Scale","Pending","LMO-0012"],["APP-10020","Fresh Market","Platform Scale","Accepted","LMO-0010"]]
+:DB.admin.applications.map(x=>[
+x.id??0,x.business??0,x.instrument??0,x.status??0,x.lmo??x.assignedOfficer??0
+]);
+
+return head("Admin Dashboard","Monitor the verification and certification workflow.",'<button class="btn primary" data-nav="assign">Assign LMO</button>')+
+'<div class="grid stats">'+
+stat("Total Applications",String(c.total),API.DEMO_MODE?"All current":"From database")+
+stat("Pending Review",String(c.pending),API.DEMO_MODE?"Awaiting action":"From database")+
+stat("Accepted",String(c.accepted),API.DEMO_MODE?"Certification stage":"From database")+
+stat("Rejected",String(c.rejected),API.DEMO_MODE?"Correction required":"From database")+
+'</div><div class="grid two" style="margin-top:18px"><div class="card"><h2>Recent Applications</h2><div class="table-wrap">'+
+(rows.length?
+'<table><thead><tr><th>ID</th><th>Business</th><th>Instrument</th><th>Status</th><th>LMO</th></tr></thead><tbody>'+
+rows.map(r=>'<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td><td>'+esc(r[2])+'</td><td><span class="badge '+(r[3]==="Accepted"?"accepted":r[3]==="Rejected"?"rejected":"pending")+'">'+esc(r[3])+'</span></td><td>'+esc(r[4])+'</td></tr>').join("")+
+'</tbody></table>':
+'<div class="empty">No application records loaded from the database.</div>')+
+'</div></div><div class="card"><h2>Workflow</h2>'+progress("Pending")+
+'<div class="notice">Admin assigns. LMO submits verification data. Backend processes the result.</div></div></div>';
+}
+function adminApplications(){
+const rows=API.DEMO_MODE
+?[["APP-10021","Arjun Traders","Electronic Weighing Scale","Pending","LMO-0012"],["APP-10020","Fresh Market","Platform Scale","Accepted","LMO-0010"]]
+:DB.admin.applications.map(x=>[
+x.id??0,x.business??0,x.instrument??0,x.status??0,x.lmo??x.assignedOfficer??0
+]);
+return head("Applications","Application records and statuses.")+
+'<div class="card table-wrap">'+
+(rows.length?
+'<table><thead><tr><th>ID</th><th>Business</th><th>Instrument</th><th>Status</th><th>LMO</th></tr></thead><tbody>'+
+rows.map(r=>'<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td><td>'+esc(r[2])+'</td><td><span class="badge '+(r[3]==="Accepted"?"accepted":r[3]==="Rejected"?"rejected":"pending")+'">'+esc(r[3])+'</span></td><td>'+esc(r[4])+'</td></tr>').join("")+
+'</tbody></table>':
+'<div class="empty">No application data loaded from the database.</div>')+
+'</div>';
+}
+function adminAssign(){
+return head("Assign LMO","Assignment will be sent to the Spring Boot backend.")+
+'<div class="card" style="max-width:700px"><div class="field"><label>Application ID</label><input id="assignApplication" placeholder="Application ID from database"></div><div class="field"><label>LMO Officer ID</label><input id="assignOfficer" placeholder="Officer ID from database"></div><div class="field"><label>Priority</label><select id="assignPriority"><option value="">Select</option><option>Normal</option><option>High</option><option>Urgent</option></select></div><div class="actions"><button class="btn primary" data-action="assign">Assign Application</button></div></div>';
+}
+function adminOfficers(){
+const rows=API.DEMO_MODE
+?[["LMO-0012","Officer 01","Thrissur",8,"Available"],["LMO-0010","Officer 02","Ernakulam",11,"Busy"]]
+:DB.admin.officers.map(x=>[
+x.id??0,x.name??0,x.district??0,Number(x.assigned??x.assignedTasks??0),x.status??0
+]);
+return head("LMO Officers","Officer records and workload.")+
+'<div class="card table-wrap">'+
+(rows.length?
+'<table><thead><tr><th>ID</th><th>Name</th><th>District</th><th>Assigned</th><th>Status</th></tr></thead><tbody>'+
+rows.map(r=>'<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td><td>'+esc(r[2])+'</td><td>'+r[3]+'</td><td>'+esc(r[4])+'</td></tr>').join("")+
+'</tbody></table>':
+'<div class="empty">No officer records loaded from the database.</div>')+
+'</div>';
+}
+function adminReports(){return head("Reports","Operational overview.")+'<div class="grid three">'+stat("Average Processing","0","From database")+stat("Pass Rate","0","From database")+stat("Certificates","0","From database")+'</div>'}
+
+app.addEventListener("click",function(e){
+const role=e.target.closest("[data-role]");
+if(role){S.role=role.dataset.role;S.screen="login";render();return}
+const nav=e.target.closest("[data-nav]");
+if(nav){const p=nav.dataset.nav;if(p==="verification"&&S.role==="lmo"&&!S.locationVerified){toast("Complete location verification from an assigned task first.");S.page="tasks"}else{S.page=p}S.wizard=null;render();window.scrollTo(0,0);return}
+const action=e.target.closest("[data-action]");
+if(action){
+const a=action.dataset.action;
+if(a==="logout"){logout();return}
+if(a==="roles"){goRoles();return}
+if(a==="eye"){const i=document.getElementById("pass"),svg=action.querySelector("svg");if(i.type==="password"){i.type="text";svg.innerHTML='<path d="M3 3l18 18"></path><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z"></path>'}else{i.type="password";svg.innerHTML='<path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z"></path><circle cx="12" cy="12" r="2.7"></circle>'}return}
+if(a==="draft"){toast("Draft saved (demo).");return}
+if(a==="customerSubmit"){S.status="Pending";toast("Application submitted.");S.page="dashboard";render();return}
+if(a==="certificate"){const x=document.getElementById("backendArea");if(x)x.innerHTML='<div class="notice" style="margin-top:14px"><b>Certificate request sent.</b> Backend will provide the generated certificate.</div>';return}
+if(a==="qr"){const x=document.getElementById("backendArea");if(x)x.innerHTML='<div class="notice" style="margin-top:14px"><b>QR request sent.</b> Backend will generate and return the QR code.</div>';return}
+if(a==="lmoSubmit"){toast("Verification submitted to backend (demo).");return}
+if(a==="locate"){requestLocation();return}
+if(a==="closeWizard"){closeWizard();return}
+if(a==="wizardNext"){S.wizard=action.dataset.step;render();return}
+if(a==="finishWizard"){toast("Verification submitted to backend (demo).");closeWizard();return}
+if(a==="assign"){toast("Application assigned (demo).");return}
+}
+const task=e.target.closest("[data-open-task]");
+if(task){openTask(task.dataset.openTask);return}
+});
+
+
+document.addEventListener("submit",function(e){
+if(e.target.id!=="customerApplicationForm")return;
+e.preventDefault();
+
+const form=e.target;
+const data=Object.fromEntries(new FormData(form).entries());
+
+/* Immediately reflect the submitted User entity in the Customer Profile. */
+DB.customer.profile={
+  id:data.userId||0,
+  name:data.name||"",
+  email:data.email||"",
+  phone:data.phone||"",
+  password:"",
+  businessName:data.businessName||"",
+  address:data.userAddress||""
+};
+DB.customer.user={...DB.customer.profile};
+
+DB.customer.current={
+  id:data.userId||0,
+  type:data.applicationType||0,
+  business:data.businessName||0,
+  instrument:data.instrumentType||0,
+  applicant:data.name||0,
+  priority:data.priority||0
+};
+
+DB.customer.counts.applications=(DB.customer.counts.applications||0)+1;
+DB.customer.counts.pending=(DB.customer.counts.pending||0)+1;
+
+/*
+  Connected mode: send exactly the captured application/user data to Spring Boot.
+  Your teammate can change field names to match the controller/DTO contract.
+*/
+if(API.DEMO_MODE){
+  S.status="Pending";
+  toast("Application saved. Profile updated.");
+  S.page="dashboard";
+  render();
+}else{
+  apiRequest(API.endpoints.customerApplication,{
+    method:"POST",
+    body:JSON.stringify({
+      userId:data.userId,
+      name:data.name,
+      email:data.email,
+      phone:data.phone,
+      password:data.userPassword,
+      businessName:data.businessName,
+      address:data.userAddress,
+      applicationType:data.applicationType,
+      priority:data.priority,
+      businessAddress:{
+        address1:data.address1,
+        address2:data.address2,
+        pin:data.pin,
+        state:data.state,
+        district:data.district
+      },
+      instrument:{
+        category:data.category,
+        type:data.instrumentType,
+        manufacturer:data.manufacturer,
+        model:data.model,
+        serialNumber:data.serial,
+        capacity:data.capacity,
+        accuracyClass:data.accuracyClass,
+        previousCertificate:data.previousCertificate
+      }
+    })
+  }).then(()=>{
+    S.status="Pending";
+    S.page="dashboard";
+    return loadBackendForRole();
+  }).then(()=>{
+    toast("Application saved to the backend.");
+    render();
+  }).catch(()=>{
+    toast("Application could not be saved to Spring Boot.");
+  });
+}
+});
+
+document.addEventListener("submit",function(e){
+  if(e.target.id!=="loginForm")return;
+  e.preventDefault();
+
+  const u=(document.getElementById("user")?.value||"").trim();
+  const p=document.getElementById("pass")?.value||"";
+  const g=(document.getElementById("gmail")?.value||"").trim();
+  const ue=document.getElementById("ue");
+  const pe=document.getElementById("pe");
+  const ge=document.getElementById("ge");
+
+  if(ue)ue.textContent=u.length<4?"Username must contain at least 4 characters.":"";
+  if(pe)pe.textContent=p.length<8?"Password must contain at least 8 characters.":"";
+
+  const needsGmail=S.role==="customer"||S.role==="lmo";
+  const gmailOK=!needsGmail||/^[^\s@]+@gmail\.com$/i.test(g);
+  if(ge)ge.textContent=needsGmail&&!gmailOK?"Enter a valid Gmail address ending in @gmail.com.":"";
+
+  if(u.length<4||p.length<8||!gmailOK)return;
+
+  if(S.role==="customer"){
+    DB.customer.profile.username=u;
+    DB.customer.profile.gmail=g;
+    DB.customer.profile.email=g;
+    DB.customer.user.username=u;
+    DB.customer.user.gmail=g;
+    DB.customer.user.email=g;
+  }
+
+  if(S.role==="lmo"){
+    DB.lmo.profile.username=u;
+    DB.lmo.profile.gmail=g;
+    DB.lmo.profile.email=g;
+  }
+
+  if(API.DEMO_MODE){
+    S.screen="dashboard";
+    S.page="dashboard";
+    S.wizard=null;
+    render();
+    window.scrollTo(0,0);
+    return;
+  }
+
+  apiRequest(API.endpoints.login,{
+    method:"POST",
+    body:JSON.stringify({username:u,password:p,email:g,role:S.role})
+  }).then(r=>{
+    API.token=r.token||"";
+    S.screen="dashboard";
+    S.page="dashboard";
+    return loadBackendForRole();
+  }).then(()=>{
+    render();
+    window.scrollTo(0,0);
+  }).catch(()=>{
+    toast("Login failed. Check Spring Boot API.");
+  });
+});
+
+
+function logout(){
+  S.role=null;
+  S.screen="roles";
+  S.page="dashboard";
+  S.status="Pending";
+  S.task=null;
+  S.wizard=null;
+  S.distance=null;
+  S.coords=null;
+  S.locationVerified=false;
+  API.token="";
+  render();
+  window.scrollTo(0,0);
+  toast("Logged out successfully.");
+}
+function goRoles(){S.role=null;S.screen="roles";S.page="dashboard";S.wizard=null;render()}
+function closeWizard(){S.wizard=null;S.distance=null;S.coords=null;S.locationVerified=false;render()}
+
+render();
+})();
+</script>
+</body>
+</html>
