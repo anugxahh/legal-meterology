@@ -1,6 +1,7 @@
 package com.example.legal_meterology.entity;
 
 import jakarta.persistence.*;
+
 import java.util.UUID;
 
 @Entity
@@ -23,11 +24,11 @@ public class Instrument {
     @Column(nullable = false)
     private String capacityRange;
 
-    // Permissible limit used by the system to decide PASS or FAIL
     @Column(nullable = false)
     private Double permissibleLimit;
 
-    // Getters and Setters
+    public Instrument() {
+    }
 
     public UUID getId() {
         return id;
