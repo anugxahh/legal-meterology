@@ -407,7 +407,6 @@ e.preventDefault();
 const form=e.target;
 const data=Object.fromEntries(new FormData(form).entries());
 
-/* Immediately reflect the submitted User entity in the Customer Profile. */
 DB.customer.profile={
   id:data.userId||0,
   name:data.name||"",
@@ -431,10 +430,6 @@ DB.customer.current={
 DB.customer.counts.applications=(DB.customer.counts.applications||0)+1;
 DB.customer.counts.pending=(DB.customer.counts.pending||0)+1;
 
-/*
-  Connected mode: send exactly the captured application/user data to Spring Boot.
-  Your teammate can change field names to match the controller/DTO contract.
-*/
 if(API.DEMO_MODE){
   S.status="Pending";
   toast("Application saved. Profile updated.");
