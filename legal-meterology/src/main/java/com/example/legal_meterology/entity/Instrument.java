@@ -6,7 +6,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "instruments")
 public class Instrument {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -23,19 +23,57 @@ public class Instrument {
     @Column(nullable = false)
     private String capacityRange;
 
+    // Permissible limit used by the system to decide PASS or FAIL
+    @Column(nullable = false)
+    private Double permissibleLimit;
+
     // Getters and Setters
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-    
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
-    
-    public String getManufacturer() { return manufacturer; }
-    public void setManufacturer(String manufacturer) { this.manufacturer = manufacturer; }
-    
-    public String getSerialNumber() { return serialNumber; }
-    public void setSerialNumber(String serialNumber) { this.serialNumber = serialNumber; }
-    
-    public String getCapacityRange() { return capacityRange; }
-    public void setCapacityRange(String capacityRange) { this.capacityRange = capacityRange; }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getManufacturer() {
+        return manufacturer;
+    }
+
+    public void setManufacturer(String manufacturer) {
+        this.manufacturer = manufacturer;
+    }
+
+    public String getSerialNumber() {
+        return serialNumber;
+    }
+
+    public void setSerialNumber(String serialNumber) {
+        this.serialNumber = serialNumber;
+    }
+
+    public String getCapacityRange() {
+        return capacityRange;
+    }
+
+    public void setCapacityRange(String capacityRange) {
+        this.capacityRange = capacityRange;
+    }
+
+    public Double getPermissibleLimit() {
+        return permissibleLimit;
+    }
+
+    public void setPermissibleLimit(Double permissibleLimit) {
+        this.permissibleLimit = permissibleLimit;
+    }
 }
