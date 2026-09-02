@@ -1,6 +1,7 @@
 package com.example.legal_meterology.controller;
 
 import com.example.legal_meterology.Service.VerificationService;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -12,7 +13,9 @@ public class VerificationController {
 
     private final VerificationService verificationService;
 
-    public VerificationController(VerificationService verificationService) {
+    public VerificationController(
+            VerificationService verificationService) {
+
         this.verificationService = verificationService;
     }
 
