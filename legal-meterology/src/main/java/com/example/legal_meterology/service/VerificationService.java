@@ -1,21 +1,26 @@
 package com.example.legal_meterology.service;
 
-import com.example.legal_meterology.entity.VerificationApplication;
-import com.example.legal_meterology.repository.VerificationApplicationRepository;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
+import com.example.legal_meterology.certificate.CertificateGenerationService;
+import com.example.legal_meterology.certificate.CertificateResult;
+import com.example.legal_meterology.entity.VerificationApplication;
+import com.example.legal_meterology.repository.VerificationApplicationRepository;
 
 @Service
 public class VerificationService {
 
     private final VerificationApplicationRepository applicationRepository;
+    private final CertificateGenerationService certificateGenerationService;
 
     public VerificationService(
-            VerificationApplicationRepository applicationRepository) {
+            VerificationApplicationRepository applicationRepository,
+            CertificateGenerationService certificateGenerationService) {
 
         this.applicationRepository = applicationRepository;
+        this.certificateGenerationService = certificateGenerationService;
     }
 
     public String verifyApplication(
@@ -45,6 +50,19 @@ public class VerificationService {
         application.setStatus("VERIFIED");
 
         applicationRepository.save(application);
+
+        // Generate certificate automatically only if verification passed
+        if ("PASS".equals(result)) {
+
+            CertificateResult certificateResult =
+                    certificateGenerationService
+                            .generateCertificate(applicationId);
+
+            if (!certificateResult.isSuccess()) {
+                return "PASS, but certificate generation failed: "
+                        + certificateResult.getMessage();
+            }
+        }
 
         return result;
     }

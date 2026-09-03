@@ -15,7 +15,6 @@
     <groupId>com.example</groupId>
     <artifactId>legal-meterology</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-
     <name>legal-meterology</name>
     <description>Legal Metrology Verification System</description>
 
@@ -24,7 +23,6 @@
     </properties>
 
     <dependencies>
-
         <!-- Spring Security -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -69,6 +67,26 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- ZXing for QR Code -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+
+        <!-- PDF Generation -->
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+            <version>2.0.3</version>
         </dependency>
 
         <!-- Tests -->

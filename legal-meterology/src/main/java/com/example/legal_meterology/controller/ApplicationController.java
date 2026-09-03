@@ -7,6 +7,7 @@ import com.example.legal_meterology.repository.InstrumentRepository;
 import com.example.legal_meterology.repository.UserProfileRepository;
 import com.example.legal_meterology.repository.VerificationApplicationRepository;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,48 +39,59 @@ public class ApplicationController {
     @PostMapping("/applications")
     public ResponseEntity<?> createApplication(@RequestBody FrontendApplicationDTO payload) {
         
-        // Step A: Find the user in the database using the email from the form
-        Optional<UserProfile> userOpt = userRepository.findByEmail(payload.getEmail());
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body("Error: User account not found!");
+        try {
+            // Step A: Find the user in the database using the email from the form
+            Optional<UserProfile> userOpt = userRepository.findByEmail(payload.getEmail());
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.badRequest().body("Error: User account not found!");
+            }
+            UserProfile owner = userOpt.get();
+
+            // Step B: Create and save the Instrument exactly as Hari designed it
+            Instrument instrument = new Instrument();
+            if (payload.getInstrument() != null) {
+                instrument.setType(payload.getInstrument().getType() != null ? payload.getInstrument().getType() : "Not Specified");
+                instrument.setManufacturer(payload.getInstrument().getManufacturer() != null ? payload.getInstrument().getManufacturer() : "Not Specified");
+                
+                // Hari made Serial Number unique and non-null. If the UI leaves it blank, we generate a random one to prevent DB crashes!
+                String serial = payload.getInstrument().getSerialNumber();
+                instrument.setSerialNumber((serial != null && !serial.isEmpty()) ? serial : UUID.randomUUID().toString());
+                
+                instrument.setCapacityRange(payload.getInstrument().getCapacity() != null ? payload.getInstrument().getCapacity() : "Not Specified");
+                
+                // The frontend UI doesn't collect permissible limit yet, so we default it to 0.0 to satisfy Hari's @Column(nullable = false)
+                instrument.setPermissibleLimit(0.0);
+            } else {
+                // Failsafe if instrument data is missing entirely
+                instrument.setType("Unknown");
+                instrument.setManufacturer("Unknown");
+                instrument.setSerialNumber(UUID.randomUUID().toString());
+                instrument.setCapacityRange("Unknown");
+                instrument.setPermissibleLimit(0.0);
+            }
+            
+            // Save the instrument first so it has an ID to link to the application
+            instrument = instrumentRepository.save(instrument);
+
+            // Step C: Create the Application and link the Foreign Keys
+            VerificationApplication application = new VerificationApplication();
+            application.setOwner(owner);
+            application.setInstrument(instrument);
+            application.setStatus("PENDING");
+
+            applicationRepository.save(application);
+
+            return ResponseEntity.ok("Success: Application submitted successfully!");
+
+        } catch (DataIntegrityViolationException e) {
+            // This catches Hari's unique constraints (like duplicate serial numbers)
+            System.err.println("DATABASE ERROR: " + e.getMostSpecificCause().getMessage());
+            return ResponseEntity.badRequest().body("Error: This Serial Number is already registered in the system.");
+        } catch (Exception e) {
+            // This catches any other unexpected crashes
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Error: An unexpected server error occurred.");
         }
-        UserProfile owner = userOpt.get();
-
-        // Step B: Create and save the Instrument exactly as Hari designed it
-        Instrument instrument = new Instrument();
-        if (payload.getInstrument() != null) {
-            instrument.setType(payload.getInstrument().getType() != null ? payload.getInstrument().getType() : "Not Specified");
-            instrument.setManufacturer(payload.getInstrument().getManufacturer() != null ? payload.getInstrument().getManufacturer() : "Not Specified");
-            
-            // Hari made Serial Number unique and non-null. If the UI leaves it blank, we generate a random one to prevent DB crashes!
-            String serial = payload.getInstrument().getSerialNumber();
-            instrument.setSerialNumber((serial != null && !serial.isEmpty()) ? serial : UUID.randomUUID().toString());
-            
-            instrument.setCapacityRange(payload.getInstrument().getCapacity() != null ? payload.getInstrument().getCapacity() : "Not Specified");
-            
-            // The frontend UI doesn't collect permissible limit yet, so we default it to 0.0 to satisfy Hari's @Column(nullable = false)
-            instrument.setPermissibleLimit(0.0);
-        } else {
-            // Failsafe if instrument data is missing entirely
-            instrument.setType("Unknown");
-            instrument.setManufacturer("Unknown");
-            instrument.setSerialNumber(UUID.randomUUID().toString());
-            instrument.setCapacityRange("Unknown");
-            instrument.setPermissibleLimit(0.0);
-        }
-        
-        // Save the instrument first so it has an ID to link to the application
-        instrument = instrumentRepository.save(instrument);
-
-        // Step C: Create the Application and link the Foreign Keys
-        VerificationApplication application = new VerificationApplication();
-        application.setOwner(owner);
-        application.setInstrument(instrument);
-        application.setStatus("PENDING");
-
-        applicationRepository.save(application);
-
-        return ResponseEntity.ok("Success: Application submitted successfully!");
     }
 
     // 2. Load Arjun's Dashboard Stats
