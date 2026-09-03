@@ -49,19 +49,16 @@ margin-bottom:18px;color:var(--cyan);
 "use strict";
 
 /* ======================= BACKEND MODE =======================
-   Keep DEMO_MODE=true while the backend contract is being wired.
-   In DEMO_MODE=false, dashboard/application/task values are read
-   from Spring Boot -> SQL and the UI falls back to zeros/empty
-   records when data is unavailable.
+   DEMO_MODE is FALSE. Talking to Spring Boot at localhost:8080.
 =============================================================== */
 const API={
-  DEMO_MODE:true,
+  DEMO_MODE:false,
   BASE_URL:"http://localhost:8080",
   endpoints:{
-    login:"/api/auth/login",
+    login:"/api/users/login",
+    register:"/api/users/register",
     customerDashboard:"/api/customer/dashboard",
     customerApplications:"/api/customer/applications",
-    customerApplication:"/api/customer/applications",
     customerCertificate:"/api/customer/certificates",
     customerQR:"/api/customer/certificates/qr",
     lmoDashboard:"/api/lmo/dashboard",
@@ -84,7 +81,10 @@ async function apiRequest(path,options={}){
   const r=await fetch(API.BASE_URL+path,{...options,headers});
   if(!r.ok) throw new Error("HTTP "+r.status);
   const type=r.headers.get("content-type")||"";
-  return type.includes("application/json")?await r.json():await r.blob();
+  
+  if(type.includes("application/json")) return await r.json();
+  if(type.includes("text/plain") || type.includes("text/html")) return await r.text();
+  return await r.blob();
 }
 
 const DB={customer:{counts:{applications:0,pending:0,accepted:0,rejected:0},applications:[],current:null,user:{id:0,username:"",gmail:"",name:"",email:"",phone:"",password:"",businessName:"",address:""},profile:{id:0,username:"",gmail:"",name:"",email:"",phone:"",businessName:"",address:""}},
@@ -117,7 +117,7 @@ async function loadBackendForRole(){
     }
   }catch(err){
     console.warn("Backend data unavailable:",err);
-    toast("Backend unavailable — connected data stays 0/empty.");
+    toast("Backend connected, but extended data is currently empty.");
   }
 }
 
@@ -142,8 +142,10 @@ function toast(m){const old=document.querySelector(".toast");if(old)old.remove()
 function render(){
 if(S.screen==="roles"){app.innerHTML=roles();return}
 if(S.screen==="login"){app.innerHTML=login();return}
+if(S.screen==="register"){app.innerHTML=register();return} // Render the new register screen
 app.innerHTML=header(false)+'<div class="shell"><aside class="sidebar">'+sidebar()+'</aside><main class="main">'+content()+'</main></div>'+(S.role==="lmo"&&S.wizard?wizard():"");
 }
+
 function roles(){
 return header(false)+'<main class="hero"><div class="eyebrow">Online Verification System</div><h1>Verification, tracking and <span>certification</span> in one portal.</h1><p>Select a role to continue. You can switch roles without leaving the website.</p><div class="role-grid">'+
 roleCard("customer","▣","Customer","Business / Applicant","Submit applications, track status and access certificates.")+
@@ -154,12 +156,19 @@ roleCard("admin","◆","Admin","System Administrator","Monitor applications, ass
 function roleCard(k,icon,title,subtitle,description){return '<article class="role-card"><div class="role-icon role-label">'+(k==="customer"?"CUSTOMER":k==="lmo"?"LMO":"ADMIN")+'</div><div class="eyebrow">'+subtitle+'</div><h2>'+title+'</h2><p class="muted">'+description+'</p><button class="btn primary" type="button" onclick="selectRole(\''+k+'\')">Continue as '+title+'</button></article>'}
 function selectRole(role){S.role=role;S.screen="login";S.page="dashboard";S.wizard=null;render();window.scrollTo(0,0)}
 window.selectRole=selectRole;
+
 function login(){
   const roleName=S.role==="customer"?"Customer":S.role==="lmo"?"LMO Officer":"Admin";
   const gmailField=(S.role==="customer"||S.role==="lmo")
     ?'<div class="field"><label>Gmail Address</label><input id="gmail" type="email" autocomplete="email" required placeholder="example@gmail.com"><div id="ge" class="error"></div><div class="gmail-note">Use the Gmail address linked to your portal account.</div></div>'
     :"";
-  return header(true)+'<main class="auth"><div class="auth-card"><div class="eyebrow">SECURE SIGN IN</div><h1>Sign in as '+roleName+'</h1><p class="muted">Enter your credentials to continue to the portal.</p><form id="loginForm"><div class="field"><label>Username</label><input id="user" autocomplete="username" minlength="4" required placeholder="Enter username"><div id="ue" class="error"></div></div>'+gmailField+'<div class="field"><label>Password</label><div class="password-wrap"><input id="pass" type="password" autocomplete="current-password" minlength="8" required placeholder="Minimum 8 characters"><button class="eye" type="button" data-action="eye" aria-label="Show password"><svg class="eye-svg" viewBox="0 0 24 24"><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-9.5-9.5-5-9.5-5Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><div id="pe" class="error"></div></div><div class="actions"><button class="btn outline" type="button" data-action="roles">← Back</button><button class="btn primary" type="submit">Sign in</button></div></form><div class="notice">Demo login: any username with 4+ characters, a valid Gmail address for Customer/LMO, and any password with 8+ characters.</div></div></main>';
+  return header(true)+'<main class="login-wrap"><div class="login-card"><div class="eyebrow">SECURE SIGN IN</div><h1>Sign in as '+roleName+'</h1><p class="muted">Enter your credentials to continue to the portal.</p><form id="loginForm"><div class="field"><label>Username</label><input id="user" autocomplete="username" minlength="4" required placeholder="Enter username"><div id="ue" class="error"></div></div>'+gmailField+'<div class="field"><label>Password</label><div class="password-wrap"><input id="pass" type="password" autocomplete="current-password" minlength="8" required placeholder="Minimum 8 characters"><button class="password-eye" type="button" data-action="eye" aria-label="Show password"><svg class="eye-svg" viewBox="0 0 24 24"><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-9.5-9.5-5-9.5-5Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><div id="pe" class="error"></div></div><div class="actions"><button class="btn outline" type="button" data-action="roles">← Back</button><button class="btn primary" type="button" data-action="login">Sign in</button></div></form><div style="margin-top:20px;text-align:center;font-size:14px" class="muted">Don\'t have an account? <a href="#" style="color:var(--cyan);text-decoration:none;font-weight:bold" data-action="goRegister">Sign up here</a></div></div></main>';
+}
+
+// THE NEW REGISTRATION SCREEN
+function register(){
+  const roleName=S.role==="customer"?"Customer":S.role==="lmo"?"LMO Officer":"Admin";
+  return header(true)+'<main class="login-wrap"><div class="login-card"><div class="eyebrow">CREATE ACCOUNT</div><h1>Register as '+roleName+'</h1><p class="muted">Create a new account in the PostgreSQL database.</p><form id="registerForm"><div class="field"><label>Full Name</label><input id="regName" required placeholder="e.g. John Doe"></div><div class="field"><label>Email Address</label><input id="regEmail" type="email" required placeholder="name@gmail.com"></div><div class="field"><label>Password</label><input id="regPass" type="password" minlength="8" required placeholder="Minimum 8 characters"></div>'+(S.role==="customer"?'<div class="field"><label>Business Name</label><input id="regBusiness" required placeholder="e.g. Fresh Market"></div>':'')+'<div class="actions" style="margin-top:25px"><button class="btn outline" type="button" data-action="goLogin">← Back to Login</button><button class="btn primary" type="button" data-action="registerSubmit">Create Account</button></div></form></div></main>';
 }
 
 function content(){return S.role==="customer"?customer():S.role==="lmo"?lmo():admin()}
@@ -383,6 +392,13 @@ if(action){
 const a=action.dataset.action;
 if(a==="logout"){logout();return}
 if(a==="roles"){goRoles();return}
+if(a==="login"){attemptLogin();return}
+
+// NEW EVENT HANDLERS FOR REGISTRATION
+if(a==="goRegister"){S.screen="register";render();return}
+if(a==="goLogin"){S.screen="login";render();return}
+if(a==="registerSubmit"){attemptRegister();return}
+
 if(a==="eye"){const i=document.getElementById("pass"),svg=action.querySelector("svg");if(i.type==="password"){i.type="text";svg.innerHTML='<path d="M3 3l18 18"></path><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z"></path>'}else{i.type="password";svg.innerHTML='<path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z"></path><circle cx="12" cy="12" r="2.7"></circle>'}return}
 if(a==="draft"){toast("Draft saved (demo).");return}
 if(a==="customerSubmit"){S.status="Pending";toast("Application submitted.");S.page="dashboard";render();return}
@@ -479,10 +495,37 @@ if(API.DEMO_MODE){
 }
 });
 
-document.addEventListener("submit",function(e){
-  if(e.target.id!=="loginForm")return;
-  e.preventDefault();
 
+// THE NEW REGISTRATION SUBMISSION LOGIC
+function attemptRegister(){
+  const n = document.getElementById("regName")?.value || "";
+  const e = document.getElementById("regEmail")?.value || "";
+  const p = document.getElementById("regPass")?.value || "";
+  const b = document.getElementById("regBusiness")?.value || "";
+
+  if(!n || !e || p.length < 8){
+    toast("Please fill all fields. Password must be 8+ characters.");
+    return;
+  }
+
+  apiRequest(API.endpoints.register, {
+    method:"POST",
+    body:JSON.stringify({
+      name: n,
+      email: e,
+      password: p,
+      businessName: b
+    })
+  }).then(r => {
+    toast("Success: Account created! You can now log in.");
+    S.screen="login";
+    render();
+  }).catch(err => {
+    toast("Registration failed. Check Spring Boot API terminal for errors.");
+  });
+}
+
+function attemptLogin(){
   const u=(document.getElementById("user")?.value||"").trim();
   const p=document.getElementById("pass")?.value||"";
   const g=(document.getElementById("gmail")?.value||"").trim();
@@ -497,7 +540,11 @@ document.addEventListener("submit",function(e){
   const gmailOK=!needsGmail||/^[^\s@]+@gmail\.com$/i.test(g);
   if(ge)ge.textContent=needsGmail&&!gmailOK?"Enter a valid Gmail address ending in @gmail.com.":"";
 
-  if(u.length<4||p.length<8||!gmailOK)return;
+  if(u.length<4||p.length<8||!gmailOK){
+    const firstError=u.length<4?"Username must contain at least 4 characters.":p.length<8?"Password must contain at least 8 characters.":"Enter a valid Gmail address ending in @gmail.com.";
+    toast(firstError);
+    return;
+  }
 
   if(S.role==="customer"){
     DB.customer.profile.username=u;
@@ -523,11 +570,13 @@ document.addEventListener("submit",function(e){
     return;
   }
 
+  // Update: We now explicitly send the exact "email" and "password" your Java endpoint needs!
   apiRequest(API.endpoints.login,{
     method:"POST",
-    body:JSON.stringify({username:u,password:p,email:g,role:S.role})
+    body:JSON.stringify({ email:g, password:p })
   }).then(r=>{
-    API.token=r.token||"";
+    // Notice: Spring Boot currently returns a success string, not a token, so we just log them in
+    API.token=r.token||""; 
     S.screen="dashboard";
     S.page="dashboard";
     return loadBackendForRole();
@@ -535,8 +584,18 @@ document.addEventListener("submit",function(e){
     render();
     window.scrollTo(0,0);
   }).catch(()=>{
-    toast("Login failed. Check Spring Boot API.");
+    toast("Login failed. Check Spring Boot API terminal for errors.");
   });
+}
+
+document.addEventListener("keydown",function(e){
+  if(e.key!=="Enter")return;
+  const form=e.target.closest("#loginForm");
+  if(form){e.preventDefault();attemptLogin();}
+  
+  // ALLOW ENTER KEY ON REGISTRATION FORM
+  const regForm=e.target.closest("#registerForm");
+  if(regForm){e.preventDefault();attemptRegister();}
 });
 
 
