@@ -40,7 +40,8 @@ border:1px solid #2e4b59;border-radius:10px;display:inline-flex;
 align-items:center;justify-content:center;padding:8px 12px;width:max-content;
 margin-bottom:18px;color:var(--cyan);
 }
-.gmail-note{font-size:11px;color:var(--muted);margin-top:6px}</style>
+.gmail-note{font-size:11px;color:var(--muted);margin-top:6px}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -57,6 +58,7 @@ const API={
   endpoints:{
     login:"/api/users/login",
     register:"/api/users/register",
+    submitApplication:"/api/customer/applications", // NEW: Endpoint for form submission
     customerDashboard:"/api/customer/dashboard",
     customerApplications:"/api/customer/applications",
     customerCertificate:"/api/customer/certificates",
@@ -91,7 +93,6 @@ const DB={customer:{counts:{applications:0,pending:0,accepted:0,rejected:0},appl
   lmo:{counts:{assigned:0,pending:0,submitted:0,notifications:0},tasks:[],history:[],notifications:[],profile:{id:0,username:"",gmail:"",name:"",email:"",phone:"",designation:0,department:0,district:0,officeLocation:0,status:0}},
   admin:{counts:{total:0,pending:0,accepted:0,rejected:0},applications:[],officers:[],reports:{}}};
 
-function dataSource(list,demoList){return API.DEMO_MODE?demoList:list}
 async function loadBackendForRole(){
   if(API.DEMO_MODE)return;
   try{
@@ -100,6 +101,19 @@ async function loadBackendForRole(){
       DB.customer.counts={applications:Number(d.applications??d.totalApplications??0),pending:Number(d.pending??0),accepted:Number(d.accepted??0),rejected:Number(d.rejected??0)};
       const a=await apiRequest(API.endpoints.customerApplications);
       DB.customer.applications=Array.isArray(a)?a:(a.applications||a.content||[]);
+      
+      // NEW: Map Hari's nested JSON to Arjun's Dashboard UI
+      if (DB.customer.applications.length > 0) {
+          const latest = DB.customer.applications[DB.customer.applications.length - 1];
+          DB.customer.current = {
+              id: (latest.id || "").split('-')[0].toUpperCase(), // Shortens the UUID
+              type: "Verification",
+              business: latest.owner ? latest.owner.businessName : "N/A",
+              instrument: latest.instrument ? latest.instrument.type : "N/A",
+              applicant: latest.owner ? latest.owner.name : "N/A",
+              priority: "Normal"
+          };
+      }
     }
     if(S.role==="lmo"){
       const d=await apiRequest(API.endpoints.lmoDashboard);
@@ -117,7 +131,6 @@ async function loadBackendForRole(){
     }
   }catch(err){
     console.warn("Backend data unavailable:",err);
-    toast("Backend connected, but extended data is currently empty.");
   }
 }
 
@@ -142,7 +155,7 @@ function toast(m){const old=document.querySelector(".toast");if(old)old.remove()
 function render(){
 if(S.screen==="roles"){app.innerHTML=roles();return}
 if(S.screen==="login"){app.innerHTML=login();return}
-if(S.screen==="register"){app.innerHTML=register();return} // Render the new register screen
+if(S.screen==="register"){app.innerHTML=register();return} 
 app.innerHTML=header(false)+'<div class="shell"><aside class="sidebar">'+sidebar()+'</aside><main class="main">'+content()+'</main></div>'+(S.role==="lmo"&&S.wizard?wizard():"");
 }
 
@@ -165,7 +178,6 @@ function login(){
   return header(true)+'<main class="login-wrap"><div class="login-card"><div class="eyebrow">SECURE SIGN IN</div><h1>Sign in as '+roleName+'</h1><p class="muted">Enter your credentials to continue to the portal.</p><form id="loginForm"><div class="field"><label>Username</label><input id="user" autocomplete="username" minlength="4" required placeholder="Enter username"><div id="ue" class="error"></div></div>'+gmailField+'<div class="field"><label>Password</label><div class="password-wrap"><input id="pass" type="password" autocomplete="current-password" minlength="8" required placeholder="Minimum 8 characters"><button class="password-eye" type="button" data-action="eye" aria-label="Show password"><svg class="eye-svg" viewBox="0 0 24 24"><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-9.5-9.5-5-9.5-5Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><div id="pe" class="error"></div></div><div class="actions"><button class="btn outline" type="button" data-action="roles">← Back</button><button class="btn primary" type="button" data-action="login">Sign in</button></div></form><div style="margin-top:20px;text-align:center;font-size:14px" class="muted">Don\'t have an account? <a href="#" style="color:var(--cyan);text-decoration:none;font-weight:bold" data-action="goRegister">Sign up here</a></div></div></main>';
 }
 
-// THE NEW REGISTRATION SCREEN
 function register(){
   const roleName=S.role==="customer"?"Customer":S.role==="lmo"?"LMO Officer":"Admin";
   return header(true)+'<main class="login-wrap"><div class="login-card"><div class="eyebrow">CREATE ACCOUNT</div><h1>Register as '+roleName+'</h1><p class="muted">Create a new account in the PostgreSQL database.</p><form id="registerForm"><div class="field"><label>Full Name</label><input id="regName" required placeholder="e.g. John Doe"></div><div class="field"><label>Email Address</label><input id="regEmail" type="email" required placeholder="name@gmail.com"></div><div class="field"><label>Password</label><input id="regPass" type="password" minlength="8" required placeholder="Minimum 8 characters"></div>'+(S.role==="customer"?'<div class="field"><label>Business Name</label><input id="regBusiness" required placeholder="e.g. Fresh Market"></div>':'')+'<div class="actions" style="margin-top:25px"><button class="btn outline" type="button" data-action="goLogin">← Back to Login</button><button class="btn primary" type="button" data-action="registerSubmit">Create Account</button></div></form></div></main>';
@@ -207,7 +219,7 @@ if(S.page==="profile")return profile("Customer");
 const c=DB.customer.counts;
 const current=DB.customer.current||{id:0,type:0,business:0,instrument:0,applicant:0,priority:0};
 return head("Customer Dashboard","Submit and track weighing & measuring instrument applications.",'<button class="btn primary" data-nav="application">+ New Application</button>')+
-'<div class="grid stats">'+stat("My Applications",String(c.applications||0),"From database")+stat("Pending",String(c.pending||0),"From database")+stat("Accepted",String(c.accepted||0),"From database")+stat("Rejected",String(c.rejected||0),"From database")+
+'<div class="grid stats">'+stat("Total Applications",String(c.applications||0),"From database")+stat("Pending",String(c.pending||0),"From database")+stat("Accepted",String(c.accepted||0),"From database")+stat("Rejected",String(c.rejected||0),"From database")+
 '</div><div class="grid two" style="margin-top:18px"><div class="card"><h2>Current Submission</h2><div class="kv">'+
 '<div><span>Application ID</span><strong>'+esc(current.id??0)+'</strong></div>'+
 '<div><span>Application Type</span><strong>'+esc(current.type??0)+'</strong></div>'+
@@ -222,33 +234,44 @@ const s=S.status;
 return '<div class="card status-card"><h2>Submission Status</h2><div class="status-box"><span class="badge '+(s==="Accepted"?"accepted":s==="Rejected"?"rejected":"pending")+'">'+s+'</span><div class="status-big">'+(s==="Accepted"?"Application accepted":s==="Rejected"?"Action required":"Under review")+'</div><div class="muted">'+(s==="Accepted"?"Application can move to certification.":s==="Rejected"?"Correction required before resubmission.":"Application received and waiting for verification.")+'</div></div>'+progress(s)+(s==="Accepted"?'<button class="btn success" style="width:100%" data-nav="certificate">Move to Certification →</button>':"")+'</div>';
 }
 function progress(s){const n=s==="Accepted"?3:s==="Rejected"?2:1;return '<div class="steps"><div class="step done"><div class="dot">✓</div>Submitted</div><div class="bar done"></div><div class="step '+(n>=2?"done":"")+'"><div class="dot">'+(n>=2?"✓":"2")+'</div>Verification</div><div class="bar '+(n>=3?"done":"")+'"></div><div class="step '+(n>=3?"done":"")+'"><div class="dot">'+(n>=3?"✓":"3")+'</div>Certification</div></div>'}
-function application(){
-return head("New Verification Application","Application details.",'<button class="btn outline" data-nav="dashboard">← Dashboard</button>')+
-'<form id="customerApplicationForm"><div class="grid two"><div>'+
-section("01","Application Details",'<div class="form-grid"><div class="field"><label>Application Type *</label><select name="applicationType" required><option value="Verification">Verification</option><option value="Re-verification">Re-verification</option></select></div><div class="field"><label>Priority</label><select name="priority"><option value="Normal">Normal</option><option value="High">High</option><option value="Urgent">Urgent</option></select></div></div>')+
-section("02","User / Applicant Details",'<div class="form-grid">'+
-'<div class="field"><label>User ID *</label><input name="userId" placeholder="Enter user ID" required></div>'+
-'<div class="field"><label>Name *</label><input name="name" placeholder="Full name" required></div>'+
-'<div class="field"><label>Email Address *</label><input name="email" type="email" placeholder="name@example.com" required></div>'+
-'<div class="field"><label>Phone Number *</label><input name="phone" type="tel" placeholder="10-digit phone number" required></div>'+
-'<div class="field"><label>Password *</label><input name="userPassword" type="password" minlength="8" placeholder="Minimum 8 characters" required></div>'+
-'<div class="field full"><label>Business / Establishment Name *</label><input name="businessName" placeholder="Enter business or establishment name" required></div>'+
-'<div class="field full"><label>Address *</label><textarea name="userAddress" placeholder="Full business / establishment address" required></textarea></div>'+
-'</div>')+
-section("03","Business Address",'<div class="form-grid"><div class="field full"><label>Address Line 1 *</label><input name="address1" placeholder="House / building / street"></div><div class="field"><label>Address Line 2</label><input name="address2" placeholder="Landmark / area (optional)"></div><div class="field"><label>PIN Code *</label><input name="pin" placeholder="6-digit PIN"></div><div class="field"><label>State / UT *</label><select name="state"><option value="">Select</option><option>Kerala</option><option>Tamil Nadu</option><option>Karnataka</option></select></div><div class="field"><label>District *</label><input name="district" placeholder="District"></div></div>')+
-section("04","Instrument Details",'<div class="form-grid"><div class="field"><label>Instrument Category *</label><select name="category"><option value="">Select</option><option>Load cells</option><option>Weighing instruments</option><option>Measuring instruments</option></select></div><div class="field"><label>Instrument Type *</label><select name="instrumentType"><option value="">Select</option><option>Weighing instrument</option><option>Measuring instrument</option></select></div><div class="field"><label>Manufacturer *</label><input name="manufacturer"></div><div class="field"><label>Model *</label><input name="model"></div><div class="field"><label>Serial Number *</label><input name="serial"></div><div class="field"><label>Capacity / Range *</label><input name="capacity"></div><div class="field"><label>Accuracy Class</label><select name="accuracyClass"><option value="">Select</option><option>Class I</option><option>Class II</option></select></div><div class="field"><label>Previous Certificate No.</label><input name="previousCertificate" placeholder="For re-verification, if available"></div></div>')+
-'<div class="actions"><button class="btn outline" type="button" data-action="draft">Save Draft</button><button class="btn primary" type="submit">Submit Application</button></div><div class="notice" style="margin-top:14px">The User fields map to <b>id, name, email, phone, password, businessName, address</b>. Password is stored/sent to the backend for authentication and is not shown on Profile.</div></div>'+statusCard()+'</div></form>';
-}
 
 function section(n,t,b){return '<section class="card section"><div class="section-head"><span class="section-no">'+n+'</span><h2>'+t+'</h2></div>'+b+'</section>'}
+
+// ==========================================
+// RESTORED & UPGRADED: NEW APPLICATION FORM
+// ==========================================
+function application(){
+  // Grab the email the user logged in with to auto-fill the form!
+  const currentEmail = DB.customer.profile.email || "";
+  
+  return head("New Verification Application","Application details.",'<button class="btn outline" data-nav="dashboard">← Dashboard</button>')+
+  '<form id="customerApplicationForm"><div class="grid two"><div>'+
+  section("01","Application Details",'<div class="form-grid"><div class="field"><label>Application Type *</label><select name="applicationType" required><option value="Verification">Verification</option><option value="Re-verification">Re-verification</option></select></div><div class="field"><label>Priority</label><select name="priority"><option value="Normal">Normal</option><option value="High">High</option><option value="Urgent">Urgent</option></select></div></div>')+
+  
+  // Notice we removed the password field here, and auto-filled the email!
+  section("02","Applicant Details",'<div class="form-grid"><div class="field"><label>Email Address *</label><input name="email" type="email" value="'+currentEmail+'" readonly required></div><div class="field"><label>Phone Number</label><input name="phone" type="tel" placeholder="10-digit phone number"></div><div class="field full"><label>Business / Establishment Name</label><input name="businessName" placeholder="Enter business or establishment name"></div></div>')+
+  
+  section("03","Instrument Details",'<div class="form-grid"><div class="field"><label>Instrument Type *</label><select name="instrumentType"><option value="">Select</option><option value="Weighing instrument">Weighing instrument</option><option value="Measuring instrument">Measuring instrument</option></select></div><div class="field"><label>Manufacturer *</label><input name="manufacturer" required></div><div class="field"><label>Model</label><input name="model"></div><div class="field"><label>Serial Number *</label><input name="serial" required></div><div class="field"><label>Capacity / Range *</label><input name="capacity" required></div></div>')+
+  
+  '<div class="actions"><button class="btn outline" type="button" data-action="draft">Save Draft</button><button class="btn primary" type="submit">Submit Application</button></div><div class="notice" style="margin-top:14px">Submitting will send this data securely to the Spring Boot ApplicationController.</div></div>'+statusCard()+'</div></form>';
+}
+// ==========================================
+
+
 function customerApps(){
-const rows=API.DEMO_MODE?[
-["APP-10021","Arjun Traders","Electronic Weighing Scale","Pending"],
-["APP-10020","Fresh Market","Platform Scale","Accepted"],
-["APP-10019","XYZ Fuels","Fuel Dispenser","Rejected"]
-]:DB.customer.applications.map(a=>[a.id,a.business,a.instrument,a.status||""]);
-return head("My Applications","Track your submitted applications.")+
-`<div class="card table-wrap">${rows.length?`<table><thead><tr><th>ID</th><th>Business</th><th>Instrument</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="badge ${r[3]==="Accepted"?"accepted":r[3]==="Rejected"?"rejected":"pending"}">${r[3]}</span></td></tr>`).join("")}</tbody></table>`:`<div class="empty">No application records loaded from the database.</div>`}</div>`;
+  // NEW: Read Hari's relational nested objects correctly
+  const rows=API.DEMO_MODE?[
+    ["APP-10021","Arjun Traders","Electronic Weighing Scale","Pending"],
+    ["APP-10020","Fresh Market","Platform Scale","Accepted"]
+  ]:DB.customer.applications.map(a=>[
+    (a.id||"").split('-')[0].toUpperCase(), // Shorten UUID
+    a.owner ? a.owner.businessName : "N/A", 
+    a.instrument ? a.instrument.type : "N/A",
+    a.status||"PENDING"
+  ]);
+
+  return head("My Applications","Track your submitted applications.")+
+  `<div class="card table-wrap">${rows.length?`<table><thead><tr><th>ID</th><th>Business</th><th>Instrument</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="badge ${r[3]==="ACCEPTED"?"accepted":r[3]==="REJECTED"?"rejected":"pending"}">${r[3]}</span></td></tr>`).join("")}</tbody></table>`:`<div class="empty">No application records loaded from the database.</div>`}</div>`;
 }
 function certificate(){if(S.status!=="Accepted")return head("Certification","Certificate becomes available after backend acceptance.")+'<div class="card empty">Current status: <strong>'+S.status+'</strong></div>';return head("Certification","Accepted application is ready for certification.")+'<div class="card"><div class="eyebrow">CERTIFICATE READY</div><h2 style="font-size:28px">Verification Certificate — APP-10021</h2><div class="kv"><div><span>Business</span><strong>Arjun Traders</strong></div><div><span>Instrument</span><strong>Electronic Weighing Scale</strong></div><div><span>Model</span><strong>640AB</strong></div><div><span>Status</span><strong style="color:var(--green)">Accepted</strong></div></div><div class="hr"></div><div class="notice">Certificate and QR generation are backend placeholders.</div><div class="actions"><button class="btn success" data-action="certificate">Download Certificate</button><button class="btn outline" data-action="qr">Generate QR</button></div><div id="backendArea"></div></div>'}
 function profile(role){
@@ -393,15 +416,11 @@ const a=action.dataset.action;
 if(a==="logout"){logout();return}
 if(a==="roles"){goRoles();return}
 if(a==="login"){attemptLogin();return}
-
-// NEW EVENT HANDLERS FOR REGISTRATION
 if(a==="goRegister"){S.screen="register";render();return}
 if(a==="goLogin"){S.screen="login";render();return}
 if(a==="registerSubmit"){attemptRegister();return}
-
 if(a==="eye"){const i=document.getElementById("pass"),svg=action.querySelector("svg");if(i.type==="password"){i.type="text";svg.innerHTML='<path d="M3 3l18 18"></path><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z"></path>'}else{i.type="password";svg.innerHTML='<path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z"></path><circle cx="12" cy="12" r="2.7"></circle>'}return}
-if(a==="draft"){toast("Draft saved (demo).");return}
-if(a==="customerSubmit"){S.status="Pending";toast("Application submitted.");S.page="dashboard";render();return}
+if(a==="draft"){toast("Draft saved.");return}
 if(a==="certificate"){const x=document.getElementById("backendArea");if(x)x.innerHTML='<div class="notice" style="margin-top:14px"><b>Certificate request sent.</b> Backend will provide the generated certificate.</div>';return}
 if(a==="qr"){const x=document.getElementById("backendArea");if(x)x.innerHTML='<div class="notice" style="margin-top:14px"><b>QR request sent.</b> Backend will generate and return the QR code.</div>';return}
 if(a==="lmoSubmit"){toast("Verification submitted to backend (demo).");return}
@@ -415,88 +434,50 @@ const task=e.target.closest("[data-open-task]");
 if(task){openTask(task.dataset.openTask);return}
 });
 
-
+// ==========================================
+// RESTORED & UPGRADED: FORM SUBMISSION
+// ==========================================
 document.addEventListener("submit",function(e){
-if(e.target.id!=="customerApplicationForm")return;
-e.preventDefault();
+  if(e.target.id!=="customerApplicationForm")return;
+  e.preventDefault();
 
-const form=e.target;
-const data=Object.fromEntries(new FormData(form).entries());
+  const form=e.target;
+  const data=Object.fromEntries(new FormData(form).entries());
 
-DB.customer.profile={
-  id:data.userId||0,
-  name:data.name||"",
-  email:data.email||"",
-  phone:data.phone||"",
-  password:"",
-  businessName:data.businessName||"",
-  address:data.userAddress||""
-};
-DB.customer.user={...DB.customer.profile};
-
-DB.customer.current={
-  id:data.userId||0,
-  type:data.applicationType||0,
-  business:data.businessName||0,
-  instrument:data.instrumentType||0,
-  applicant:data.name||0,
-  priority:data.priority||0
-};
-
-DB.customer.counts.applications=(DB.customer.counts.applications||0)+1;
-DB.customer.counts.pending=(DB.customer.counts.pending||0)+1;
-
-if(API.DEMO_MODE){
-  S.status="Pending";
-  toast("Application saved. Profile updated.");
-  S.page="dashboard";
-  render();
-}else{
-  apiRequest(API.endpoints.customerApplication,{
-    method:"POST",
-    body:JSON.stringify({
-      userId:data.userId,
-      name:data.name,
-      email:data.email,
-      phone:data.phone,
-      password:data.userPassword,
-      businessName:data.businessName,
-      address:data.userAddress,
-      applicationType:data.applicationType,
-      priority:data.priority,
-      businessAddress:{
-        address1:data.address1,
-        address2:data.address2,
-        pin:data.pin,
-        state:data.state,
-        district:data.district
-      },
-      instrument:{
-        category:data.category,
-        type:data.instrumentType,
-        manufacturer:data.manufacturer,
-        model:data.model,
-        serialNumber:data.serial,
-        capacity:data.capacity,
-        accuracyClass:data.accuracyClass,
-        previousCertificate:data.previousCertificate
-      }
-    })
-  }).then(()=>{
+  if(API.DEMO_MODE){
     S.status="Pending";
+    toast("Application saved (Demo Mode).");
     S.page="dashboard";
-    return loadBackendForRole();
-  }).then(()=>{
-    toast("Application saved to the backend.");
     render();
-  }).catch(()=>{
-    toast("Application could not be saved to Spring Boot.");
-  });
-}
+  } else {
+    
+    // Package data to match the FrontendApplicationDTO in Java!
+    const payload = {
+      email: data.email || DB.customer.profile.email, // Use logged-in email
+      instrument: {
+        type: data.instrumentType || "Not Specified",
+        manufacturer: data.manufacturer || "Not Specified",
+        serialNumber: data.serial || "",
+        capacity: data.capacity || "Not Specified"
+      }
+    };
+
+    apiRequest(API.endpoints.submitApplication,{
+      method:"POST",
+      body:JSON.stringify(payload)
+    }).then(res=>{
+      S.status="Pending";
+      S.page="dashboard";
+      return loadBackendForRole(); // Refresh dashboard numbers
+    }).then(()=>{
+      toast("Application securely saved to PostgreSQL!");
+      render();
+    }).catch(err=>{
+      toast("Failed to submit. Check Spring Boot terminal for errors.");
+    });
+  }
 });
 
-
-// THE NEW REGISTRATION SUBMISSION LOGIC
 function attemptRegister(){
   const n = document.getElementById("regName")?.value || "";
   const e = document.getElementById("regEmail")?.value || "";
@@ -570,12 +551,10 @@ function attemptLogin(){
     return;
   }
 
-  // Update: We now explicitly send the exact "email" and "password" your Java endpoint needs!
   apiRequest(API.endpoints.login,{
     method:"POST",
     body:JSON.stringify({ email:g, password:p })
   }).then(r=>{
-    // Notice: Spring Boot currently returns a success string, not a token, so we just log them in
     API.token=r.token||""; 
     S.screen="dashboard";
     S.page="dashboard";
@@ -593,7 +572,6 @@ document.addEventListener("keydown",function(e){
   const form=e.target.closest("#loginForm");
   if(form){e.preventDefault();attemptLogin();}
   
-  // ALLOW ENTER KEY ON REGISTRATION FORM
   const regForm=e.target.closest("#registerForm");
   if(regForm){e.preventDefault();attemptRegister();}
 });
