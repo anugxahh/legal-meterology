@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.function.Function;
 
 @Service
+@SuppressWarnings("null")
 public class JwtService {
 
     @Value("${jwt.secret}")

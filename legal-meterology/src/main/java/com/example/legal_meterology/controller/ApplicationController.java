@@ -11,14 +11,16 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/customer") // <-- Matches Arjun's frontend JS route
+@RequestMapping("/api/customer")
 @CrossOrigin(origins = "*")
 public class ApplicationController {
 
@@ -38,31 +40,24 @@ public class ApplicationController {
     // 1. Catch Arjun's Form and Save to Hari's Database
     @PostMapping("/applications")
     public ResponseEntity<?> createApplication(@RequestBody FrontendApplicationDTO payload) {
-        
         try {
-            // Step A: Find the user in the database using the email from the form
             Optional<UserProfile> userOpt = userRepository.findByEmail(payload.getEmail());
             if (userOpt.isEmpty()) {
                 return ResponseEntity.badRequest().body("Error: User account not found!");
             }
             UserProfile owner = userOpt.get();
 
-            // Step B: Create and save the Instrument exactly as Hari designed it
             Instrument instrument = new Instrument();
             if (payload.getInstrument() != null) {
                 instrument.setType(payload.getInstrument().getType() != null ? payload.getInstrument().getType() : "Not Specified");
                 instrument.setManufacturer(payload.getInstrument().getManufacturer() != null ? payload.getInstrument().getManufacturer() : "Not Specified");
                 
-                // Hari made Serial Number unique and non-null. If the UI leaves it blank, we generate a random one to prevent DB crashes!
                 String serial = payload.getInstrument().getSerialNumber();
-                instrument.setSerialNumber((serial != null && !serial.isEmpty()) ? serial : UUID.randomUUID().toString());
+                instrument.setSerialNumber((serial != null && !serial.trim().isEmpty()) ? serial.trim() : UUID.randomUUID().toString());
                 
                 instrument.setCapacityRange(payload.getInstrument().getCapacity() != null ? payload.getInstrument().getCapacity() : "Not Specified");
-                
-                // The frontend UI doesn't collect permissible limit yet, so we default it to 0.0 to satisfy Hari's @Column(nullable = false)
                 instrument.setPermissibleLimit(0.0);
             } else {
-                // Failsafe if instrument data is missing entirely
                 instrument.setType("Unknown");
                 instrument.setManufacturer("Unknown");
                 instrument.setSerialNumber(UUID.randomUUID().toString());
@@ -70,10 +65,8 @@ public class ApplicationController {
                 instrument.setPermissibleLimit(0.0);
             }
             
-            // Save the instrument first so it has an ID to link to the application
             instrument = instrumentRepository.save(instrument);
 
-            // Step C: Create the Application and link the Foreign Keys
             VerificationApplication application = new VerificationApplication();
             application.setOwner(owner);
             application.setInstrument(instrument);
@@ -84,27 +77,29 @@ public class ApplicationController {
             return ResponseEntity.ok("Success: Application submitted successfully!");
 
         } catch (DataIntegrityViolationException e) {
-            // This catches Hari's unique constraints (like duplicate serial numbers)
-            System.err.println("DATABASE ERROR: " + e.getMostSpecificCause().getMessage());
+            System.err.println("DATABASE ERROR: Duplicate Serial Number or Missing Data.");
             return ResponseEntity.badRequest().body("Error: This Serial Number is already registered in the system.");
         } catch (Exception e) {
-            // This catches any other unexpected crashes
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("Error: An unexpected server error occurred.");
         }
     }
 
-    // 2. Load Arjun's Dashboard Stats
+    // 2. Load Arjun's Dashboard Stats (SECURED WITH JWT)
     @GetMapping("/dashboard")
-    public ResponseEntity<Map<String, Long>> getDashboardStats() {
-        List<VerificationApplication> allApps = applicationRepository.findAll();
+    public ResponseEntity<Map<String, Long>> getDashboardStats(Principal principal) {
+        String loggedInEmail = principal.getName(); 
+
+        List<VerificationApplication> myApps = applicationRepository.findAll().stream()
+                .filter(a -> a.getOwner() != null && loggedInEmail.equalsIgnoreCase(a.getOwner().getEmail()))
+                .collect(Collectors.toList());
         
-        long pending = allApps.stream().filter(a -> "PENDING".equalsIgnoreCase(a.getStatus())).count();
-        long accepted = allApps.stream().filter(a -> "ACCEPTED".equalsIgnoreCase(a.getStatus())).count();
-        long rejected = allApps.stream().filter(a -> "REJECTED".equalsIgnoreCase(a.getStatus())).count();
+        long pending = myApps.stream().filter(a -> "PENDING".equalsIgnoreCase(a.getStatus())).count();
+        long accepted = myApps.stream().filter(a -> "ACCEPTED".equalsIgnoreCase(a.getStatus())).count();
+        long rejected = myApps.stream().filter(a -> "REJECTED".equalsIgnoreCase(a.getStatus())).count();
 
         Map<String, Long> stats = new HashMap<>();
-        stats.put("totalApplications", (long) allApps.size());
+        stats.put("totalApplications", (long) myApps.size());
         stats.put("pending", pending);
         stats.put("accepted", accepted);
         stats.put("rejected", rejected);
@@ -112,10 +107,14 @@ public class ApplicationController {
         return ResponseEntity.ok(stats);
     }
 
-    // 3. Preserved Hari's Original Endpoints (Mapped to /applications)
+    // 3. Preserved Hari's Original Endpoints (SECURED WITH JWT)
     @GetMapping("/applications")
-    public List<VerificationApplication> getAllApplications() {
-        return applicationRepository.findAll();
+    public List<VerificationApplication> getAllApplications(Principal principal) {
+        String loggedInEmail = principal.getName();
+        
+        return applicationRepository.findAll().stream()
+                .filter(a -> a.getOwner() != null && loggedInEmail.equalsIgnoreCase(a.getOwner().getEmail()))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/applications/{id}")
@@ -133,7 +132,7 @@ public class ApplicationController {
     }
 
     // =====================================================================
-    // DTO CLASSES: These map exactly to Arjun's JS object structure
+    // DTO CLASSES
     // =====================================================================
     public static class FrontendApplicationDTO {
         private String email;

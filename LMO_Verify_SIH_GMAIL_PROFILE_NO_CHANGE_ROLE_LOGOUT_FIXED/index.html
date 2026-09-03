@@ -49,16 +49,13 @@ margin-bottom:18px;color:var(--cyan);
 (function(){
 "use strict";
 
-/* ======================= BACKEND MODE =======================
-   DEMO_MODE is FALSE. Talking to Spring Boot at localhost:8080.
-=============================================================== */
 const API={
   DEMO_MODE:false,
   BASE_URL:"http://localhost:8080",
   endpoints:{
     login:"/api/users/login",
     register:"/api/users/register",
-    submitApplication:"/api/customer/applications", // NEW: Endpoint for form submission
+    submitApplication:"/api/customer/applications",
     customerDashboard:"/api/customer/dashboard",
     customerApplications:"/api/customer/applications",
     customerCertificate:"/api/customer/certificates",
@@ -102,17 +99,22 @@ async function loadBackendForRole(){
       const a=await apiRequest(API.endpoints.customerApplications);
       DB.customer.applications=Array.isArray(a)?a:(a.applications||a.content||[]);
       
-      // NEW: Map Hari's nested JSON to Arjun's Dashboard UI
       if (DB.customer.applications.length > 0) {
           const latest = DB.customer.applications[DB.customer.applications.length - 1];
           DB.customer.current = {
-              id: (latest.id || "").split('-')[0].toUpperCase(), // Shortens the UUID
+              id: (latest.id || "").split('-')[0].toUpperCase(),
               type: "Verification",
               business: latest.owner ? latest.owner.businessName : "N/A",
               instrument: latest.instrument ? latest.instrument.type : "N/A",
               applicant: latest.owner ? latest.owner.name : "N/A",
               priority: "Normal"
           };
+          if (latest.status) {
+              S.status = latest.status.charAt(0) + latest.status.slice(1).toLowerCase();
+              if(S.status === "Pending") S.status = "Under Review";
+          }
+      } else {
+          DB.customer.current = null;
       }
     }
     if(S.role==="lmo"){
@@ -135,7 +137,7 @@ async function loadBackendForRole(){
 }
 
 const app=document.getElementById("app");
-const S={screen:"roles",role:null,page:"dashboard",status:"Pending",task:null,wizard:null,distance:null,coords:null,locationVerified:false};
+const S={screen:"roles",role:null,page:"dashboard",status:"Under Review",task:null,wizard:null,distance:null,coords:null,locationVerified:false};
 const TASKS=[
 {id:"APP-10021",business:"Arjun Traders",instrument:"Electronic Weighing Scale",priority:"Normal",address:"Thrissur, Kerala",latitude:10.5276,longitude:76.2144},
 {id:"APP-10018",business:"Fresh Market",instrument:"Platform Scale",priority:"High",address:"Kochi, Kerala",latitude:9.9312,longitude:76.2673},
@@ -175,12 +177,12 @@ function login(){
   const gmailField=(S.role==="customer"||S.role==="lmo")
     ?'<div class="field"><label>Gmail Address</label><input id="gmail" type="email" autocomplete="email" required placeholder="example@gmail.com"><div id="ge" class="error"></div><div class="gmail-note">Use the Gmail address linked to your portal account.</div></div>'
     :"";
-  return header(true)+'<main class="login-wrap"><div class="login-card"><div class="eyebrow">SECURE SIGN IN</div><h1>Sign in as '+roleName+'</h1><p class="muted">Enter your credentials to continue to the portal.</p><form id="loginForm"><div class="field"><label>Username</label><input id="user" autocomplete="username" minlength="4" required placeholder="Enter username"><div id="ue" class="error"></div></div>'+gmailField+'<div class="field"><label>Password</label><div class="password-wrap"><input id="pass" type="password" autocomplete="current-password" minlength="8" required placeholder="Minimum 8 characters"><button class="password-eye" type="button" data-action="eye" aria-label="Show password"><svg class="eye-svg" viewBox="0 0 24 24"><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-9.5-9.5-5-9.5-5Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><div id="pe" class="error"></div></div><div class="actions"><button class="btn outline" type="button" data-action="roles">← Back</button><button class="btn primary" type="button" data-action="login">Sign in</button></div></form><div style="margin-top:20px;text-align:center;font-size:14px" class="muted">Don\'t have an account? <a href="#" style="color:var(--cyan);text-decoration:none;font-weight:bold" data-action="goRegister">Sign up here</a></div></div></main>';
+  return header(true)+'<main class="login-wrap"><div class="login-card"><div class="eyebrow">SECURE SIGN IN</div><h1>Sign in as '+roleName+'</h1><p class="muted">Enter your credentials to continue to the portal.</p><form id="loginForm"><div class="field"><label>Username</label><input id="user" autocomplete="username" minlength="4" required placeholder="Enter username"><div id="ue" class="error"></div></div>'+gmailField+'<div class="field"><label>Password</label><div class="password-wrap"><input id="pass" type="password" autocomplete="current-password" minlength="8" required placeholder="Minimum 8 characters"><button class="password-eye" type="button" data-action="eye" aria-label="Show password"><svg class="eye-svg" viewBox="0 0 24 24"><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5-9.5-5Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg></button></div><div id="pe" class="error"></div></div><div class="actions"><button class="btn outline" type="button" data-action="roles">← Back</button><button class="btn primary" type="button" data-action="login">Sign in</button></div></form><div style="margin-top:20px;text-align:center;font-size:14px" class="muted">Don\'t have an account? <a href="#" style="color:var(--cyan);text-decoration:none;font-weight:bold" data-action="goRegister">Sign up here</a></div></div></main>';
 }
 
 function register(){
   const roleName=S.role==="customer"?"Customer":S.role==="lmo"?"LMO Officer":"Admin";
-  return header(true)+'<main class="login-wrap"><div class="login-card"><div class="eyebrow">CREATE ACCOUNT</div><h1>Register as '+roleName+'</h1><p class="muted">Create a new account in the PostgreSQL database.</p><form id="registerForm"><div class="field"><label>Full Name</label><input id="regName" required placeholder="e.g. John Doe"></div><div class="field"><label>Email Address</label><input id="regEmail" type="email" required placeholder="name@gmail.com"></div><div class="field"><label>Password</label><input id="regPass" type="password" minlength="8" required placeholder="Minimum 8 characters"></div>'+(S.role==="customer"?'<div class="field"><label>Business Name</label><input id="regBusiness" required placeholder="e.g. Fresh Market"></div>':'')+'<div class="actions" style="margin-top:25px"><button class="btn outline" type="button" data-action="goLogin">← Back to Login</button><button class="btn primary" type="button" data-action="registerSubmit">Create Account</button></div></form></div></main>';
+  return header(true)+'<main class="login-wrap"><div class="login-card"><div class="eyebrow">CREATE ACCOUNT</div><h1>Register as '+roleName+'</h1><p class="muted">Create a new account in the PostgreSQL database.</p><form id="registerForm"><div class="field"><label>Username *</label><input id="regUser" required placeholder="Choose a username"></div><div class="field"><label>Full Name</label><input id="regName" required placeholder="e.g. John Doe"></div><div class="field"><label>Email Address</label><input id="regEmail" type="email" required placeholder="name@gmail.com"></div><div class="field"><label>Password</label><input id="regPass" type="password" minlength="8" required placeholder="Minimum 8 characters"></div>'+(S.role==="customer"?'<div class="field"><label>Business Name</label><input id="regBusiness" required placeholder="e.g. Fresh Market"></div>':'')+'<div class="actions" style="margin-top:25px"><button class="btn outline" type="button" data-action="goLogin">← Back to Login</button><button class="btn primary" type="button" data-action="registerSubmit">Create Account</button></div></form></div></main>';
 }
 
 function content(){return S.role==="customer"?customer():S.role==="lmo"?lmo():admin()}
@@ -217,54 +219,58 @@ if(S.page==="applications")return customerApps();
 if(S.page==="certificate")return certificate();
 if(S.page==="profile")return profile("Customer");
 const c=DB.customer.counts;
-const current=DB.customer.current||{id:0,type:0,business:0,instrument:0,applicant:0,priority:0};
+const current=DB.customer.current||{id:"No active apps",type:"—",business:"—",instrument:"—",applicant:"—",priority:"—"};
 return head("Customer Dashboard","Submit and track weighing & measuring instrument applications.",'<button class="btn primary" data-nav="application">+ New Application</button>')+
 '<div class="grid stats">'+stat("Total Applications",String(c.applications||0),"From database")+stat("Pending",String(c.pending||0),"From database")+stat("Accepted",String(c.accepted||0),"From database")+stat("Rejected",String(c.rejected||0),"From database")+
 '</div><div class="grid two" style="margin-top:18px"><div class="card"><h2>Current Submission</h2><div class="kv">'+
-'<div><span>Application ID</span><strong>'+esc(current.id??0)+'</strong></div>'+
-'<div><span>Application Type</span><strong>'+esc(current.type??0)+'</strong></div>'+
-'<div><span>Business</span><strong>'+esc(current.business??0)+'</strong></div>'+
-'<div><span>Instrument</span><strong>'+esc(current.instrument??0)+'</strong></div>'+
-'<div><span>Applicant</span><strong>'+esc(current.applicant??0)+'</strong></div>'+
-'<div><span>Priority</span><strong>'+esc(current.priority??0)+'</strong></div>'+
+'<div><span>Application ID</span><strong>'+esc(current.id)+'</strong></div>'+
+'<div><span>Application Type</span><strong>'+esc(current.type)+'</strong></div>'+
+'<div><span>Business</span><strong>'+esc(current.business)+'</strong></div>'+
+'<div><span>Instrument</span><strong>'+esc(current.instrument)+'</strong></div>'+
+'<div><span>Applicant</span><strong>'+esc(current.applicant)+'</strong></div>'+
+'<div><span>Priority</span><strong>'+esc(current.priority)+'</strong></div>'+
 '</div></div>'+statusCard()+'</div>';
 }
+
 function statusCard(){
 const s=S.status;
-return '<div class="card status-card"><h2>Submission Status</h2><div class="status-box"><span class="badge '+(s==="Accepted"?"accepted":s==="Rejected"?"rejected":"pending")+'">'+s+'</span><div class="status-big">'+(s==="Accepted"?"Application accepted":s==="Rejected"?"Action required":"Under review")+'</div><div class="muted">'+(s==="Accepted"?"Application can move to certification.":s==="Rejected"?"Correction required before resubmission.":"Application received and waiting for verification.")+'</div></div>'+progress(s)+(s==="Accepted"?'<button class="btn success" style="width:100%" data-nav="certificate">Move to Certification →</button>':"")+'</div>';
+const isAccepted = s==="Accepted";
+const isRejected = s==="Rejected";
+const hasApp = DB.customer.current !== null && DB.customer.current.id !== "No active apps";
+
+const badgeClass = isAccepted ? "accepted" : isRejected ? "rejected" : "pending";
+const titleText = isAccepted ? "Application accepted" : isRejected ? "Action required" : (hasApp ? "Under review" : "No submission yet");
+const descText = isAccepted ? "Application can move to certification." : isRejected ? "Correction required before resubmission." : (hasApp ? "Application received and waiting for verification." : "Submit a new application to track its progress here.");
+
+return '<div class="card status-card"><h2>Submission Status</h2><div class="status-box"><span class="badge '+badgeClass+'">'+s+'</span><div class="status-big">'+titleText+'</div><div class="muted">'+descText+'</div></div>'+progress(s)+(isAccepted?'<button class="btn success" style="width:100%" data-nav="certificate">Move to Certification →</button>':"")+'</div>';
 }
-function progress(s){const n=s==="Accepted"?3:s==="Rejected"?2:1;return '<div class="steps"><div class="step done"><div class="dot">✓</div>Submitted</div><div class="bar done"></div><div class="step '+(n>=2?"done":"")+'"><div class="dot">'+(n>=2?"✓":"2")+'</div>Verification</div><div class="bar '+(n>=3?"done":"")+'"></div><div class="step '+(n>=3?"done":"")+'"><div class="dot">'+(n>=3?"✓":"3")+'</div>Certification</div></div>'}
+
+function progress(s){
+  const hasApp = DB.customer.current !== null && DB.customer.current.id !== "No active apps";
+  const step1Done = hasApp || s==="Accepted" || s==="Rejected" || s==="Under Review";
+  const n = s==="Accepted"?3:s==="Rejected"?2:(hasApp?1:0);
+  
+  return '<div class="steps"><div class="step '+(step1Done?"done":"")+'"><div class="dot">'+(step1Done?"✓":"1")+'</div>Submitted</div><div class="bar '+(n>=1?"done":"")+'"></div><div class="step '+(n>=2?"done":"")+'"><div class="dot">'+(n>=2?"✓":"2")+'</div>Verification</div><div class="bar '+(n>=3?"done":"")+'"></div><div class="step '+(n>=3?"done":"")+'"><div class="dot">'+(n>=3?"✓":"3")+'</div>Certification</div></div>';
+}
 
 function section(n,t,b){return '<section class="card section"><div class="section-head"><span class="section-no">'+n+'</span><h2>'+t+'</h2></div>'+b+'</section>'}
 
-// ==========================================
-// RESTORED & UPGRADED: NEW APPLICATION FORM
-// ==========================================
 function application(){
-  // Grab the email the user logged in with to auto-fill the form!
   const currentEmail = DB.customer.profile.email || "";
-  
   return head("New Verification Application","Application details.",'<button class="btn outline" data-nav="dashboard">← Dashboard</button>')+
   '<form id="customerApplicationForm"><div class="grid two"><div>'+
   section("01","Application Details",'<div class="form-grid"><div class="field"><label>Application Type *</label><select name="applicationType" required><option value="Verification">Verification</option><option value="Re-verification">Re-verification</option></select></div><div class="field"><label>Priority</label><select name="priority"><option value="Normal">Normal</option><option value="High">High</option><option value="Urgent">Urgent</option></select></div></div>')+
-  
-  // Notice we removed the password field here, and auto-filled the email!
   section("02","Applicant Details",'<div class="form-grid"><div class="field"><label>Email Address *</label><input name="email" type="email" value="'+currentEmail+'" readonly required></div><div class="field"><label>Phone Number</label><input name="phone" type="tel" placeholder="10-digit phone number"></div><div class="field full"><label>Business / Establishment Name</label><input name="businessName" placeholder="Enter business or establishment name"></div></div>')+
-  
   section("03","Instrument Details",'<div class="form-grid"><div class="field"><label>Instrument Type *</label><select name="instrumentType"><option value="">Select</option><option value="Weighing instrument">Weighing instrument</option><option value="Measuring instrument">Measuring instrument</option></select></div><div class="field"><label>Manufacturer *</label><input name="manufacturer" required></div><div class="field"><label>Model</label><input name="model"></div><div class="field"><label>Serial Number *</label><input name="serial" required></div><div class="field"><label>Capacity / Range *</label><input name="capacity" required></div></div>')+
-  
   '<div class="actions"><button class="btn outline" type="button" data-action="draft">Save Draft</button><button class="btn primary" type="submit">Submit Application</button></div><div class="notice" style="margin-top:14px">Submitting will send this data securely to the Spring Boot ApplicationController.</div></div>'+statusCard()+'</div></form>';
 }
-// ==========================================
-
 
 function customerApps(){
-  // NEW: Read Hari's relational nested objects correctly
   const rows=API.DEMO_MODE?[
     ["APP-10021","Arjun Traders","Electronic Weighing Scale","Pending"],
     ["APP-10020","Fresh Market","Platform Scale","Accepted"]
   ]:DB.customer.applications.map(a=>[
-    (a.id||"").split('-')[0].toUpperCase(), // Shorten UUID
+    (a.id||"").split('-')[0].toUpperCase(),
     a.owner ? a.owner.businessName : "N/A", 
     a.instrument ? a.instrument.type : "N/A",
     a.status||"PENDING"
@@ -273,7 +279,9 @@ function customerApps(){
   return head("My Applications","Track your submitted applications.")+
   `<div class="card table-wrap">${rows.length?`<table><thead><tr><th>ID</th><th>Business</th><th>Instrument</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="badge ${r[3]==="ACCEPTED"?"accepted":r[3]==="REJECTED"?"rejected":"pending"}">${r[3]}</span></td></tr>`).join("")}</tbody></table>`:`<div class="empty">No application records loaded from the database.</div>`}</div>`;
 }
+
 function certificate(){if(S.status!=="Accepted")return head("Certification","Certificate becomes available after backend acceptance.")+'<div class="card empty">Current status: <strong>'+S.status+'</strong></div>';return head("Certification","Accepted application is ready for certification.")+'<div class="card"><div class="eyebrow">CERTIFICATE READY</div><h2 style="font-size:28px">Verification Certificate — APP-10021</h2><div class="kv"><div><span>Business</span><strong>Arjun Traders</strong></div><div><span>Instrument</span><strong>Electronic Weighing Scale</strong></div><div><span>Model</span><strong>640AB</strong></div><div><span>Status</span><strong style="color:var(--green)">Accepted</strong></div></div><div class="hr"></div><div class="notice">Certificate and QR generation are backend placeholders.</div><div class="actions"><button class="btn success" data-action="certificate">Download Certificate</button><button class="btn outline" data-action="qr">Generate QR</button></div><div id="backendArea"></div></div>'}
+
 function profile(role){
 if(role==="Customer"){
 const d=DB.customer.profile||DB.customer.user||{id:0,username:"",gmail:"",name:"",email:"",phone:"",businessName:"",address:""};
@@ -305,7 +313,6 @@ function profileField(label,value,full=false){
 return '<div class="field '+(full?"full":"")+'"><label>'+label+'</label><input value="'+esc(value)+'" disabled></div>';
 }
 
-/* LMO */
 function lmo(){
 if(S.page==="tasks")return lmoTasksPage();
 if(S.page==="verification"&&!S.locationVerified){S.page="tasks";return lmoTasksPage();}
@@ -336,7 +343,6 @@ if(S.wizard==="evidence")return wizardFrame(4,"Evidence & Remarks",'<div class="
 return wizardFrame(5,"Review & Submit",'<div class="wizard-task"><div><span>Application</span><strong>'+t.id+'</strong></div><div><span>Location</span><strong>Confirmed</strong></div><div><span>Verification Data</span><strong>Ready</strong></div></div><div class="notice" style="margin-top:16px"><b>Backend processing:</b> the frontend does not decide PASS/FAIL.</div>','<button class="btn outline" data-action="wizardNext" data-step="evidence">Back</button><button class="btn primary" data-action="finishWizard">Submit Verification</button>')}
 function wizardFrame(n,title,body,actions){return '<div class="modal"><div class="wizard"><div class="wizard-head"><div><div class="eyebrow">STEP '+n+' OF 5</div><h2>'+title+'</h2></div><button class="close" data-action="closeWizard">×</button></div>'+wizardProgress(n)+'<div>'+body+'</div><div class="wizard-actions">'+actions+'</div></div></div>'}
 
-/* Admin */
 function admin(){
 if(S.page==="applications")return adminApplications();
 if(S.page==="assign")return adminAssign();
@@ -419,7 +425,7 @@ if(a==="login"){attemptLogin();return}
 if(a==="goRegister"){S.screen="register";render();return}
 if(a==="goLogin"){S.screen="login";render();return}
 if(a==="registerSubmit"){attemptRegister();return}
-if(a==="eye"){const i=document.getElementById("pass"),svg=action.querySelector("svg");if(i.type==="password"){i.type="text";svg.innerHTML='<path d="M3 3l18 18"></path><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z"></path>'}else{i.type="password";svg.innerHTML='<path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z"></path><circle cx="12" cy="12" r="2.7"></circle>'}return}
+if(a==="eye"){const i=document.getElementById("pass"),svg=action.querySelector("svg");if(i.type==="password"){i.type="text";svg.innerHTML='<path d="M3 3l18 18"></path><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5-9.5-5Z"></path>'}else{i.type="password";svg.innerHTML='<path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z"></path><circle cx="12" cy="12" r="2.7"></circle>'}return}
 if(a==="draft"){toast("Draft saved.");return}
 if(a==="certificate"){const x=document.getElementById("backendArea");if(x)x.innerHTML='<div class="notice" style="margin-top:14px"><b>Certificate request sent.</b> Backend will provide the generated certificate.</div>';return}
 if(a==="qr"){const x=document.getElementById("backendArea");if(x)x.innerHTML='<div class="notice" style="margin-top:14px"><b>QR request sent.</b> Backend will generate and return the QR code.</div>';return}
@@ -434,9 +440,6 @@ const task=e.target.closest("[data-open-task]");
 if(task){openTask(task.dataset.openTask);return}
 });
 
-// ==========================================
-// RESTORED & UPGRADED: FORM SUBMISSION
-// ==========================================
 document.addEventListener("submit",function(e){
   if(e.target.id!=="customerApplicationForm")return;
   e.preventDefault();
@@ -445,15 +448,13 @@ document.addEventListener("submit",function(e){
   const data=Object.fromEntries(new FormData(form).entries());
 
   if(API.DEMO_MODE){
-    S.status="Pending";
+    S.status="Under Review";
     toast("Application saved (Demo Mode).");
     S.page="dashboard";
     render();
   } else {
-    
-    // Package data to match the FrontendApplicationDTO in Java!
     const payload = {
-      email: data.email || DB.customer.profile.email, // Use logged-in email
+      email: data.email || DB.customer.profile.email,
       instrument: {
         type: data.instrumentType || "Not Specified",
         manufacturer: data.manufacturer || "Not Specified",
@@ -466,9 +467,9 @@ document.addEventListener("submit",function(e){
       method:"POST",
       body:JSON.stringify(payload)
     }).then(res=>{
-      S.status="Pending";
+      S.status="Under Review";
       S.page="dashboard";
-      return loadBackendForRole(); // Refresh dashboard numbers
+      return loadBackendForRole();
     }).then(()=>{
       toast("Application securely saved to PostgreSQL!");
       render();
@@ -479,12 +480,13 @@ document.addEventListener("submit",function(e){
 });
 
 function attemptRegister(){
+  const u = document.getElementById("regUser")?.value || "";
   const n = document.getElementById("regName")?.value || "";
   const e = document.getElementById("regEmail")?.value || "";
   const p = document.getElementById("regPass")?.value || "";
   const b = document.getElementById("regBusiness")?.value || "";
 
-  if(!n || !e || p.length < 8){
+  if(!u || !n || !e || p.length < 8){
     toast("Please fill all fields. Password must be 8+ characters.");
     return;
   }
@@ -492,6 +494,7 @@ function attemptRegister(){
   apiRequest(API.endpoints.register, {
     method:"POST",
     body:JSON.stringify({
+      username: u,
       name: n,
       email: e,
       password: p,
@@ -553,7 +556,7 @@ function attemptLogin(){
 
   apiRequest(API.endpoints.login,{
     method:"POST",
-    body:JSON.stringify({ email:g, password:p })
+    body:JSON.stringify({ email: S.role==="admin" ? u : g, password: p })
   }).then(r=>{
     API.token=r.token||""; 
     S.screen="dashboard";
@@ -576,17 +579,18 @@ document.addEventListener("keydown",function(e){
   if(regForm){e.preventDefault();attemptRegister();}
 });
 
-
 function logout(){
   S.role=null;
   S.screen="roles";
   S.page="dashboard";
-  S.status="Pending";
+  S.status="Under Review";
   S.task=null;
   S.wizard=null;
   S.distance=null;
   S.coords=null;
   S.locationVerified=false;
+  DB.customer.current=null;
+  DB.customer.applications=[];
   API.token="";
   render();
   window.scrollTo(0,0);
