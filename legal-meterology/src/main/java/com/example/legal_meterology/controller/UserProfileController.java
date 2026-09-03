@@ -43,9 +43,10 @@ public class UserProfileController {
                     .body("Error: Email is already in use!");
         }
 
+        // Encrypt password before saving
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // Public registration should only create CUSTOMER accounts
+        // Public registration creates CUSTOMER accounts
         user.setRole("CUSTOMER");
 
         userProfileRepository.save(user);
@@ -61,7 +62,7 @@ public class UserProfileController {
 
         try {
 
-            // Spring Security verifies email + password
+            // Authenticate email and password using Spring Security
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getEmail(),
@@ -69,12 +70,12 @@ public class UserProfileController {
                     )
             );
 
-            // Get the user after successful authentication
+            // Get authenticated user
             UserProfile user = userProfileRepository
                     .findByEmail(loginRequest.getEmail())
                     .orElseThrow();
 
-            // Generate JWT
+            // Create JWT
             String token = jwtService.generateToken(
                     org.springframework.security.core.userdetails.User
                             .withUsername(user.getEmail())
@@ -83,6 +84,7 @@ public class UserProfileController {
                             .build()
             );
 
+            // Return JWT and basic user information
             return ResponseEntity.ok(
                     Map.of(
                             "token", token,
