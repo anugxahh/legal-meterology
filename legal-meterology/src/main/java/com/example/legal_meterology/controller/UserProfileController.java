@@ -2,9 +2,15 @@ package com.example.legal_meterology.controller;
 
 import com.example.legal_meterology.entity.UserProfile;
 import com.example.legal_meterology.repository.UserProfileRepository;
+import com.example.legal_meterology.service.JwtService;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -14,45 +20,95 @@ public class UserProfileController {
 
     private final UserProfileRepository userProfileRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
-    public UserProfileController(UserProfileRepository userProfileRepository, PasswordEncoder passwordEncoder) {
+    public UserProfileController(
+            UserProfileRepository userProfileRepository,
+            PasswordEncoder passwordEncoder,
+            AuthenticationManager authenticationManager,
+            JwtService jwtService) {
+
         this.userProfileRepository = userProfileRepository;
         this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody UserProfile user) {
+
         if (userProfileRepository.findByEmail(user.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body("Error: Email is already in use!");
+            return ResponseEntity.badRequest()
+                    .body("Error: Email is already in use!");
         }
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // Public registration should only create CUSTOMER accounts
+        user.setRole("CUSTOMER");
+
         userProfileRepository.save(user);
-        return ResponseEntity.ok("Success: User registered successfully!");
+
+        return ResponseEntity.ok(
+                "Success: User registered successfully!"
+        );
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody UserProfile loginRequest) {
-        var userOptional = userProfileRepository.findByEmail(loginRequest.getEmail());
-        
-        if (userOptional.isEmpty()) {
-            return ResponseEntity.status(401).body("Error: Invalid email or password");
-        }
+    public ResponseEntity<?> loginUser(
+            @RequestBody UserProfile loginRequest) {
 
-        UserProfile user = userOptional.get();
+        try {
 
-        if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-            return ResponseEntity.ok("Success: Login successful! Welcome " + user.getName());
-        } else {
-            return ResponseEntity.status(401).body("Error: Invalid email or password");
+            // Spring Security verifies email + password
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword()
+                    )
+            );
+
+            // Get the user after successful authentication
+            UserProfile user = userProfileRepository
+                    .findByEmail(loginRequest.getEmail())
+                    .orElseThrow();
+
+            // Generate JWT
+            String token = jwtService.generateToken(
+                    org.springframework.security.core.userdetails.User
+                            .withUsername(user.getEmail())
+                            .password(user.getPassword())
+                            .roles(user.getRole())
+                            .build()
+            );
+
+            return ResponseEntity.ok(
+                    Map.of(
+                            "token", token,
+                            "email", user.getEmail(),
+                            "name", user.getName(),
+                            "role", user.getRole()
+                    )
+            );
+
+        } catch (Exception e) {
+
+            return ResponseEntity
+                    .status(401)
+                    .body("Error: Invalid email or password");
         }
     }
 
     @DeleteMapping("/{id}")
     public String deleteProfile(@PathVariable UUID id) {
+
         if (!userProfileRepository.existsById(id)) {
             return "Profile not found";
         }
+
         userProfileRepository.deleteById(id);
+
         return "Profile deleted successfully";
     }
 }
