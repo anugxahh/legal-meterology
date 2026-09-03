@@ -5,6 +5,8 @@ import com.example.legal_meterology.service.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,10 +28,8 @@ public class SecurityConfig {
             HttpSecurity http) throws Exception {
 
         http
-            // Disable CSRF because we are using JWT
             .csrf(csrf -> csrf.disable())
 
-            // JWT authentication does not use sessions
             .sessionManagement(session ->
                 session.sessionCreationPolicy(
                     SessionCreationPolicy.STATELESS
@@ -38,10 +38,10 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                // Login and registration are public
+                // Registration and login are public
                 .requestMatchers(
-                    "/api/users/login",
-                    "/api/users/register"
+                    "/api/users/register",
+                    "/api/users/login"
                 ).permitAll()
 
                 // Customer APIs
@@ -61,9 +61,10 @@ public class SecurityConfig {
             )
 
             .httpBasic(httpBasic -> httpBasic.disable())
+
             .formLogin(form -> form.disable())
 
-            // Run JWT filter before Spring's username/password filter
+            // JWT filter
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
@@ -75,5 +76,13 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration configuration)
+            throws Exception {
+
+        return configuration.getAuthenticationManager();
     }
 }
