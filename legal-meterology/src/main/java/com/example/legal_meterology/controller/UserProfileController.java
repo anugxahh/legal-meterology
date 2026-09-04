@@ -35,9 +35,6 @@ public class UserProfileController {
         this.jwtService = jwtService;
     }
 
-    // =========================
-    // REGISTER USER
-    // =========================
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(
             @RequestBody UserProfile user) {
@@ -55,7 +52,10 @@ public class UserProfileController {
                 passwordEncoder.encode(user.getPassword())
         );
 
+<<<<<<< ours
         // Public registration creates CUSTOMER accounts only
+=======
+>>>>>>> theirs
         user.setRole("CUSTOMER");
 
         userProfileRepository.save(user);
@@ -65,9 +65,6 @@ public class UserProfileController {
         );
     }
 
-    // =========================
-    // LOGIN USER
-    // =========================
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(
             @RequestBody UserProfile loginRequest) {
@@ -110,9 +107,12 @@ public class UserProfileController {
         }
     }
 
+<<<<<<< ours
     // =========================
     // DELETE USER
     // =========================
+=======
+>>>>>>> theirs
     @DeleteMapping("/{id}")
     public String deleteProfile(
             @PathVariable UUID id) {
