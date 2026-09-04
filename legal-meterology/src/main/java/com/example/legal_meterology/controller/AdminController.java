@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -22,36 +21,17 @@ public class AdminController {
         this.adminService = adminService;
     }
 
-    // ----------------------------------------------------
-    // 1. GET PENDING APPLICATIONS
-    // ----------------------------------------------------
-
     @GetMapping("/applications")
-    public ResponseEntity<List<VerificationApplication>>
-    getPendingApplications() {
-
-        return ResponseEntity.ok(
-                adminService.getPendingApplications()
-        );
+    public ResponseEntity<List<VerificationApplication>> getPendingApplications() {
+        return ResponseEntity.ok(adminService.getPendingApplications());
     }
-
-    // ----------------------------------------------------
-    // 2. GET ALL LMOs
-    // ----------------------------------------------------
 
     @GetMapping("/officers")
-    public ResponseEntity<List<UserProfile>>
-    getAllLMOs() {
-
-        return ResponseEntity.ok(
-                adminService.getAllLMOs()
-        );
+    public ResponseEntity<List<UserProfile>> getAllLMOs() {
+        return ResponseEntity.ok(adminService.getAllLMOs());
     }
 
-    // ----------------------------------------------------
-    // 3. ASSIGN APPLICATION TO LMO
-    // ----------------------------------------------------
-
+    // Existing endpoint
     @PostMapping("/applications/{applicationId}/assign")
     public ResponseEntity<String> assignApplication(
             @PathVariable UUID applicationId,
@@ -69,9 +49,29 @@ public class AdminController {
         return ResponseEntity.ok(result);
     }
 
-    // ----------------------------------------------------
-    // 4. GET ONE APPLICATION
-    // ----------------------------------------------------
+    // Compatibility endpoint used by the current frontend
+    @PostMapping("/assign")
+    public ResponseEntity<String> assignApplicationLegacy(
+            @RequestBody AssignOfficerRequest request) {
+
+        if (request.getApplicationId() == null ||
+            request.getOfficerId() == null) {
+
+            return ResponseEntity.badRequest()
+                    .body("applicationId and officerId are required");
+        }
+
+        String result = adminService.assignApplicationToLMO(
+                request.getApplicationId(),
+                request.getOfficerId()
+        );
+
+        if (!"Application assigned successfully".equals(result)) {
+            return ResponseEntity.badRequest().body(result);
+        }
+
+        return ResponseEntity.ok(result);
+    }
 
     @GetMapping("/applications/{applicationId}")
     public ResponseEntity<?> getApplication(
@@ -87,13 +87,18 @@ public class AdminController {
         return ResponseEntity.ok(application);
     }
 
-    // ----------------------------------------------------
-    // REQUEST BODY FOR ASSIGNMENT
-    // ----------------------------------------------------
-
     public static class AssignOfficerRequest {
 
+        private UUID applicationId;
         private UUID officerId;
+
+        public UUID getApplicationId() {
+            return applicationId;
+        }
+
+        public void setApplicationId(UUID applicationId) {
+            this.applicationId = applicationId;
+        }
 
         public UUID getOfficerId() {
             return officerId;
