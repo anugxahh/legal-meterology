@@ -5,7 +5,6 @@ import com.example.legal_meterology.entity.VerificationApplication;
 import com.example.legal_meterology.service.AdminService;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
