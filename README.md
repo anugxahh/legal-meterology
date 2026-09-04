@@ -1,62 +1,9 @@
-# Legal Metrology Verification System
+# LMO Verify SIH — Standard Light/Dark UI
 
-A Spring Boot backend application for managing the verification and scheduling of weighing and measuring instruments under Legal Metrology.
+Added a subtle one-click Light/Dark theme switch with smooth transition animation and localStorage persistence. Existing navigation, login, logout, profiles, API wiring, customer application flow, and LMO location verification are preserved.
 
-## 📌 Project Overview
 
-The Legal Metrology Verification System is designed to digitize the process of instrument verification and certification.
+Light-mode contrast fix: Secure Application Portal text and the password visibility eye now use dark, high-contrast strokes/text in light mode. Dark mode remains unchanged.
 
-The system provides APIs for:
 
-- Managing verification schedules
-- Storing schedule information
-- Checking measured values against permissible limits
-- Automatically determining whether an instrument passes or fails verification
-- Connecting the application to a PostgreSQL database
-
-The project is being developed as a backend prototype that can later be connected to a web or mobile frontend.
-
----
-
-## 🚀 Technologies Used
-
-- **Java**
-- **Spring Boot**
-- **Spring Data JPA**
-- **Hibernate**
-- **PostgreSQL**
-- **Maven**
-- **REST APIs**
-- **Git & GitHub**
-
----
-
-## 📂 Project Structure
-
-```text
-legal-meterology/
-│
-├── src/
-│   └── main/
-│       ├── java/
-│       │   └── com/example/legal_meterology/
-│       │       │
-│       │       ├── controller/
-│       │       │   ├── ScheduleController.java
-│       │       │   └── VerificationController.java
-│       │       │
-│       │       ├── entity/
-│       │       │   └── Schedule.java
-│       │       │
-│       │       ├── repository/
-│       │       │   └── ScheduleRepository.java
-│       │       │
-│       │       └── Service/
-│       │           └── VerificationService.java
-│       │
-│       └── resources/
-│           └── application.properties
-│
-├── pom.xml
-├── mvnw
-└── mvnw.cmd
+Role-selection page: removed Logout button only. Authenticated pages retain Logout. No other functional changes.
