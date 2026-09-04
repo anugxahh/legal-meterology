@@ -31,11 +31,13 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
+    // Password encryption
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // Explicit authentication provider
     @Bean
     public DaoAuthenticationProvider authenticationProvider(
             CustomUserDetailsService userDetailsService,
@@ -49,6 +51,7 @@ public class SecurityConfig {
         return provider;
     }
 
+    // Authentication manager
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration configuration)
@@ -57,14 +60,18 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 
+    // Security configuration
     @Bean
     public SecurityFilterChain securityFilterChain(
-            HttpSecurity http) throws Exception {
+            HttpSecurity http,
+            DaoAuthenticationProvider authenticationProvider)
+            throws Exception {
 
         http
             .cors(cors ->
                 cors.configurationSource(corsConfigurationSource())
             )
+
             .csrf(csrf -> csrf.disable())
 
             .sessionManagement(session ->
@@ -75,38 +82,42 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
+                // Allow CORS preflight requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**")
                 .permitAll()
 
+                // Public authentication endpoints
                 .requestMatchers(
                     "/api/users/register",
                     "/api/users/login"
                 )
                 .permitAll()
 
+                // Customer APIs
                 .requestMatchers("/api/customer/**")
                 .hasRole("CUSTOMER")
 
+                // LMO APIs
                 .requestMatchers("/api/lmo/**")
                 .hasRole("LMO")
 
+                // Admin APIs
                 .requestMatchers("/api/admin/**")
                 .hasRole("ADMIN")
 
+                // Everything else requires authentication
                 .anyRequest()
                 .authenticated()
             )
 
             .httpBasic(httpBasic -> httpBasic.disable())
+
             .formLogin(form -> form.disable())
 
-            .authenticationProvider(
-                authenticationProvider(
-                    null,
-                    passwordEncoder()
-                )
-            )
+            // Use our explicit authentication provider
+            .authenticationProvider(authenticationProvider)
 
+            // JWT authentication
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
@@ -115,6 +126,7 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // CORS configuration
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
