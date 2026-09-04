@@ -42,7 +42,6 @@ public class UserProfileController {
     public ResponseEntity<?> registerUser(
             @RequestBody UserProfile user) {
 
-        // Check whether email already exists
         if (userProfileRepository
                 .findByEmail(user.getEmail())
                 .isPresent()) {
@@ -52,12 +51,11 @@ public class UserProfileController {
                     .body("Error: Email is already in use!");
         }
 
-        // Encrypt password before saving
         user.setPassword(
                 passwordEncoder.encode(user.getPassword())
         );
 
-        // Public registration can only create CUSTOMER accounts
+        // Public registration creates CUSTOMER accounts only
         user.setRole("CUSTOMER");
 
         userProfileRepository.save(user);
@@ -76,7 +74,6 @@ public class UserProfileController {
 
         try {
 
-            // Authenticate email + password
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getEmail(),
@@ -84,12 +81,10 @@ public class UserProfileController {
                     )
             );
 
-            // Get authenticated user
             UserProfile user = userProfileRepository
                     .findByEmail(loginRequest.getEmail())
                     .orElseThrow();
 
-            // Create JWT token
             String token = jwtService.generateToken(
                     org.springframework.security.core.userdetails.User
                             .withUsername(user.getEmail())
@@ -98,7 +93,6 @@ public class UserProfileController {
                             .build()
             );
 
-            // Return JWT and user information
             return ResponseEntity.ok(
                     Map.of(
                             "token", token,
@@ -110,7 +104,6 @@ public class UserProfileController {
 
         } catch (Exception e) {
 
-            // Wrong email or password
             return ResponseEntity
                     .status(401)
                     .body("Error: Invalid email or password");
