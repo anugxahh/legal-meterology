@@ -10,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -115,6 +116,21 @@ public class UserProfileController {
                     .status(401)
                     .body("Error: Invalid email or password");
         }
+    }
+
+    // =========================
+    // TEMPORARY: FIND ADMIN EMAIL
+    // =========================
+    @GetMapping("/find-admin")
+    public ResponseEntity<List<String>> findAdminEmails() {
+
+        List<String> adminEmails = userProfileRepository
+                .findByRole("ADMIN")
+                .stream()
+                .map(UserProfile::getEmail)
+                .toList();
+
+        return ResponseEntity.ok(adminEmails);
     }
 
     // =========================
