@@ -110,7 +110,6 @@ public class UserProfileController {
 
         } catch (Exception e) {
 
-            // Wrong email or password
             return ResponseEntity
                     .status(401)
                     .body("Error: Invalid email or password");
